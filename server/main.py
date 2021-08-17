@@ -109,6 +109,45 @@ def manage_users():
         return dumpJSON("User created!")
 
 
+@app.route("/action/<username>/<url>")
+@cross_origin()
+def manage_user_action(username: str, url: str):
+    # Check URL length
+    if len(url) != 8:
+        return dumpJSON("Bad Request")  # Invalid URL
+
+    # Check if user exists.
+    user: List[User] = User.query.filter_by(username=username).all()
+    if len(user) == 0:
+        return dumpJSON("Bad Request")  # User does not exist
+
+    # Check if the URL exists
+    userActionTable = get_user_action_table(username)
+    userAction: List[userActionTable] = userActionTable.query.filter_by(
+        url=url).all()
+
+    if len(userAction) == 0:
+        return dumpJSON("Bad Request")  # URL does not exist
+
+    actionID = userAction[0].id
+
+    if actionID == 1:
+        # The account is verified
+        user[0].emailVerified = True
+        userAction[0].expiry_date = datetime.now()  # Expire the link
+        db.session.commit()
+
+        message = {
+            "heading": "Account Verified Successfully!",
+            "body": "Your account has been verified successfully! You can now log in to your account!"
+        }
+
+        return dumpJSON(message)
+
+    else:
+        return dumpJSON("Some problem occurred! Please try again later!")
+
+
 if __name__ == "__main__":
     with app.test_request_context():
         db.create_all()
