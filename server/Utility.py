@@ -1,6 +1,8 @@
 from os import urandom
 import re
 import hashlib
+from random import randint, choice
+from string import ascii_letters as alphabets
 
 
 def HashPassword(password: str, saltUsed: bytes = None):
@@ -34,7 +36,7 @@ def ValidateUserData(username: str, email: str, password: str):
         return "Username should not be longer than 50 characters!"
 
     # Validate email
-    if IsValidEmail(email):
+    if not IsValidEmail(email):
         return "Please enter a valid email!"
 
     # Validate password. Rules: length >= 8. Contains both numbers and alphabets
@@ -61,3 +63,15 @@ def IsValidEmail(email: str) -> bool:
         return False
 
     return True
+
+
+def generate_random_string(length: int):
+    string:  str = ""
+
+    for x in range(length):
+        if randint(0, 1):
+            string += choice(alphabets)
+        else:
+            string += str(randint(0, 9))
+
+    return string
