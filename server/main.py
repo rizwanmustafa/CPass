@@ -107,6 +107,16 @@ def manage_users():
 
         return dumpJSON("User created!")
 
+@app.route("/usernameavailable/<username>")
+@cross_origin()
+def username_available(username: str):
+    # Get the user by the username
+    user = User.query.filter_by(username=username).all();
+
+    if len(user): # The user name is not available
+        return dumpJSON(False)
+
+    return dumpJSON(True)
 
 @app.route("/action/<username>/<url>")
 @cross_origin()
