@@ -1,6 +1,6 @@
 import { ICredential } from "../../types";
 
-const FetchCredentials = async (userId: string, masterPassword: string): Promise<any> => {
+const FetchCredentials = async (userId: string, masterPassword: string): Promise<ICredential> => {
 	const fetchURL = `http://localhost:5000/getCredentials/${userId}/${masterPassword}`;
 
 	const fetchData = await fetch(fetchURL, {
