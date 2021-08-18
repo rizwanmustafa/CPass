@@ -1,6 +1,5 @@
 from datetime import date, datetime, time, timedelta
-from random import randint
-from types import coroutine
+from PasswordGenerator import GeneratePassword
 from typing import List
 from json import dumps as dumpJSON
 
@@ -147,6 +146,26 @@ def manage_user_action(username: str, url: str):
     else:
         return dumpJSON("Some problem occurred! Please try again later!")
 
+
+@app.route("/generatepassword/", methods=["POST"])
+@cross_origin()
+def generate_password():
+    passwordData = request.get_json()
+    
+    if not passwordData: return dumpJSON("No password attributes were sent!")
+
+    incompleteData = not 'length' in passwordData or not 'uppercase' in passwordData or not 'lowercase' in passwordData or not 'specials' in passwordData or not 'numbers' in passwordData
+
+    if incompleteData: return dumpJSON("Incomplete password attributes were sent!")
+
+    password = GeneratePassword(
+        passwordData['length'] ,
+        passwordData['uppercase'],
+        passwordData['lowercase'],
+        passwordData['numbers'],
+        passwordData['specials']
+    )
+    return dumpJSON(password)
 
 if __name__ == "__main__":
     with app.test_request_context():
