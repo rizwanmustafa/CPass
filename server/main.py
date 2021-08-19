@@ -111,9 +111,9 @@ def manage_users():
 @cross_origin()
 def username_available(username: str):
     # Get the user by the username
-    user = User.query.filter_by(username=username).all();
+    user : List[User] = User.query.filter_by(username=username).all();
 
-    if len(user): # The user name is not available
+    if len(user) and user[0].username == username: # The user name is not available
         return dumpJSON(False)
 
     return dumpJSON(True)
