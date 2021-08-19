@@ -107,7 +107,7 @@ def manage_users():
 
         return dumpJSON("User created!")
 
-@app.route("/usernameavailable/<username>")
+@app.route("/usernameavailable/<username>/")
 @cross_origin()
 def username_available(username: str):
     # Get the user by the username
