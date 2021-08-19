@@ -1,9 +1,12 @@
 import axios from "axios";
 import { ICredential } from "../../types";
 
-const FetchCredentials = async (userId: string, masterPassword: string): Promise<ICredential[]>=> {
+const FetchCredentials = async (username: string, userToken: string): Promise<ICredential[]>=> {
 	try{
-		const fetchData = await axios.get(`http://localhost:5000/getCredentials/${userId}/${masterPassword}`)
+		const fetchData = await axios.post("http://localhost:5000/getCredentials/", {
+			username: username,
+			token: userToken,
+		})
 
 		return fetchData.data;
 	}
