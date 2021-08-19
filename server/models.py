@@ -37,7 +37,7 @@ def get_user_action_table(username: str):
         expiry_date = db.Column(db.DateTime, nullable=False)
         additional_data = db.Column(db.String(255), nullable=False)
 
-        def __init__(self, url: str, id: int, expiry_date: datetime, additional_data: str):
+        def __init__(self, url: str, id: int, expiry_date: datetime, additional_data: str = ""):
             self.url = url
             self.id = id
             self.expiry_date = expiry_date

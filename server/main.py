@@ -51,7 +51,7 @@ def test():
 
 
 def send_verification_email(username: str, url: str, recipient: str):
-    url = GetEnvVar("PUBLIC_WEBSITE_URL") + f"/action/{username}/{url}"
+    url = GetEnvVar("PUBLIC_WEBSITE_URL") + f"/action?username={username}&url={url}"
     email_body = f"Hi {username},\n\nPlease click the following link to verify your account:\n\n{url}\n\nThanks,\n\nCloud Password Manager"
     return send_mail("Confirm your account", email_body, [recipient])
 
@@ -107,9 +107,13 @@ def manage_users():
 
         return dumpJSON("User created!")
 
-@app.route("/usernameavailable/<username>/")
+@app.route("/usernameavailable")
 @cross_origin()
-def username_available(username: str):
+def username_available():
+    username = request.args.get("username")
+
+    if username == None: return dumpJSON("Bad request")
+    if len(username) > 50: return dumpJSON(False)
     # Get the user by the username
     user : List[User] = User.query.filter_by(username=username).all();
 
@@ -118,9 +122,14 @@ def username_available(username: str):
 
     return dumpJSON(True)
 
-@app.route("/action/<username>/<url>")
+@app.route("/action")
 @cross_origin()
-def manage_user_action(username: str, url: str):
+def manage_user_action():
+    username = request.args.get('username')
+    url= request.args.get('url')
+
+    if username == None or url == None: return dumpJSON("Bad Request")
+
     # Check URL length
     if len(url) != 8:
         return dumpJSON("Bad Request")  # Invalid URL
@@ -156,26 +165,22 @@ def manage_user_action(username: str, url: str):
     else:
         return dumpJSON("Some problem occurred! Please try again later!")
 
-
-@app.route("/generatepassword/", methods=["POST"])
+@app.route("/generatepassword")
 @cross_origin()
 def generate_password():
-    passwordData = request.get_json()
-    
-    if not passwordData: return dumpJSON("No password attributes were sent!")
+    length = request.args.get('length', default=None, type=int)
+    uppercase = request.args.get('uppercase', default=None, type=str)
+    lowercase= request.args.get('lowercase', default=None, type=str)
+    numbers = request.args.get('numbers', default=None, type=str)
+    specials = request.args.get('specials', default=None, type=str)
 
-    incompleteData = not 'length' in passwordData or not 'uppercase' in passwordData or not 'lowercase' in passwordData or not 'specials' in passwordData or not 'numbers' in passwordData
+    incompleteData = length == None or uppercase == None or lowercase == None or numbers == None or specials == None
 
     if incompleteData: return dumpJSON("Incomplete password attributes were sent!")
 
-    password = GeneratePassword(
-        passwordData['length'] ,
-        passwordData['uppercase'],
-        passwordData['lowercase'],
-        passwordData['numbers'],
-        passwordData['specials']
-    )
-    return dumpJSON(password)
+    generated_password = GeneratePassword(length,uppercase,lowercase,numbers,specials)
+
+    return dumpJSON(generated_password)
 
 if __name__ == "__main__":
     with app.test_request_context():
