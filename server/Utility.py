@@ -3,6 +3,7 @@ import re
 import hashlib
 from random import randint, choice
 from string import ascii_letters as alphabets
+from enum import Enum
 
 
 def HashPassword(password: str, saltUsed: bytes = None):
@@ -75,3 +76,24 @@ def generate_random_string(length: int):
             string += str(randint(0, 9))
 
     return string
+
+
+class ServerResponseType(Enum):
+    SUCCESSFUL = 1
+    ERROR = 2
+    WARNING = 3
+
+
+def prepare_server_response_object(type: ServerResponseType, heading: str = None, body: str = None, data: dict = None) -> dict:
+    server_response = {"type": type}
+
+    if heading:
+        server_response["heading"] = heading
+
+    if body:
+        server_response["body"] = body
+
+    if data:
+        server_response["data"] = data
+
+    return server_response
