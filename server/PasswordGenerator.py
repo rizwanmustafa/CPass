@@ -44,5 +44,3 @@ def GeneratePassword(length: int, uppercase: bool, lowercase: bool, numbers: boo
 
         if randomChar and not charRepeated:
             password += randomChar
-
-        print("Password: ", password)
