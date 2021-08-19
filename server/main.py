@@ -169,10 +169,10 @@ def manage_user_action():
 @cross_origin()
 def generate_password():
     length = request.args.get('length', default=None, type=int)
-    uppercase = request.args.get('uppercase', default=None, type=str)
-    lowercase= request.args.get('lowercase', default=None, type=str)
-    numbers = request.args.get('numbers', default=None, type=str)
-    specials = request.args.get('specials', default=None, type=str)
+    uppercase = request.args.get('uppercase', default=None, type=bool)
+    lowercase= request.args.get('lowercase', default=None, type=bool)
+    numbers = request.args.get('numbers', default=None, type=bool)
+    specials = request.args.get('specials', default=None, type=bool)
 
     incompleteData = length == None or uppercase == None or lowercase == None or numbers == None or specials == None
 

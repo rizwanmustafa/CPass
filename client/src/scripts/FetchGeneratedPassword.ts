@@ -6,16 +6,11 @@ const FetchGeneratedPassword = async (length: number, lowercase: boolean, upperc
 	if (!lowercase && !uppercase && !numbers && !specials)
 		return "";
 
-	const passwordData: object = {
-		length: length,
-		lowercase: lowercase,
-		uppercase: uppercase,
-		numbers: numbers,
-		specials: specials,
-	}
-
 	try {
-		const fetchData = await axios.post("http://localhost:5000/generatepassword/", passwordData)
+		const fetchURL = "http://localhost:5000/generatepassword";
+		const fetchParameters = `?length=${length}&lowercase=${lowercase}&uppercase=${uppercase}&numbers=${numbers}&specials=${specials}`;
+
+		const fetchData = await axios.get(fetchURL + fetchParameters);
 
 		return fetchData.data;
 	}
