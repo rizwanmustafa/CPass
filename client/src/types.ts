@@ -5,14 +5,14 @@ export interface ICredential {
 	password: string;
 }
 
-export enum ServerResponseTime {
+export enum ServerResponseType {
 	Successful = 1,
 	Error,
 	Warning,
 }
 
 export interface IServerResponse {
-	type: ServerResponseTime;
+	type: ServerResponseType;
 	heading?: string;
 	body?: string;
 	data?: string;
