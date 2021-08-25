@@ -10,7 +10,7 @@ from flask_mail import Mail, Message
 from decouple import config as GetEnvVar
 
 from Utility import HashPassword, ValidateUserData, generate_random_string
-from Utility import prepare_server_response_object, ServerResponseType
+from Utility import prepare_server_response_object, SERVER_RESPONSE_TYPE
 from models import get_user_action_table, db, User
 
 app = Flask(__name__)
@@ -73,16 +73,16 @@ def manage_users():
         userDataValid = ValidateUserData(username, email, password)
 
         if userDataValid != "":  # Since the data is not valid, send the appropriate correction measure
-            return dumpJSON(prepare_server_response_object(ServerResponseType.ERROR, body=userDataValid))
+            return dumpJSON(prepare_server_response_object(SERVER_RESPONSE_TYPE.ERROR, body=userDataValid))
 
         # Make sure the username or email does not already exist in the database
         usernameExists = User.query.filter_by(username=username).first()
         if usernameExists:
-            return dumpJSON(prepare_server_response_object(ServerResponseType.ERROR, body="Username is already taken!"))
+            return dumpJSON(prepare_server_response_object(SERVER_RESPONSE_TYPE.ERROR, body="Username is already taken!"))
 
         emailExists = User.query.filter_by(email=email).first()
         if emailExists:
-            return dumpJSON(prepare_server_response_object(ServerResponseType.ERROR, body="Email is already taken!"))
+            return dumpJSON(prepare_server_response_object(SERVER_RESPONSE_TYPE.ERROR, body="Email is already taken!"))
 
         # Hash the passoord and get the salt used
         hashedPassword, salt = HashPassword(password)
@@ -97,7 +97,7 @@ def manage_users():
         # Send the verification email to the user
         if not send_verification_email(username, randomURL, email):
             return dumpJSON(prepare_server_response_object(
-                ServerResponseType.ERROR,
+                SERVER_RESPONSE_TYPE.ERROR,
                 body="User could not be created! Please try again later!"
             ))
 
@@ -111,7 +111,7 @@ def manage_users():
         db.session.commit()
 
         return dumpJSON(prepare_server_response_object(
-            ServerResponseType.SUCCESSFUL,
+            SERVER_RESPONSE_TYPE.SUCCESSFUL,
             body="Account created successfully! Please verify your account by following the directions specified in the email sent to you."
         ))
 

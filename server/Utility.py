@@ -78,13 +78,13 @@ def generate_random_string(length: int):
     return string
 
 
-class ServerResponseType(Enum):
-    SUCCESSFUL = 1
-    ERROR = 2
-    WARNING = 3
+SERVER_RESPONSE_TYPE = {
+    'SUCCESSFUL': 1,
+    'ERROR': 2,
+    'WARNING': 3,
+}
 
-
-def prepare_server_response_object(type: ServerResponseType, heading: str = None, body: str = None, data: dict = None) -> dict:
+def prepare_server_response_object(type: int, heading: str = None, body: str = None, data: dict = None) -> dict:
     server_response = {"type": type}
 
     if heading:
