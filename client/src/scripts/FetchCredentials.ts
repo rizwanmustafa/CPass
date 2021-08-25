@@ -1,5 +1,5 @@
 import axios from "axios";
-import { ICredential } from "../../types";
+import { ICredential } from "../types";
 
 const FetchCredentials = async (username: string, userToken: string): Promise<ICredential[]>=> {
 	try{
