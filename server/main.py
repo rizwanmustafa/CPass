@@ -10,6 +10,7 @@ from flask_mail import Mail, Message
 from decouple import config as GetEnvVar
 
 from Utility import HashPassword, ValidateUserData, generate_random_string
+from Utility import prepare_server_response_object, ServerResponseType
 from models import get_user_action_table, db, User
 
 app = Flask(__name__)
@@ -51,7 +52,8 @@ def test():
 
 
 def send_verification_email(username: str, url: str, recipient: str):
-    url = GetEnvVar("PUBLIC_WEBSITE_URL") + f"/action?username={username}&url={url}"
+    url = GetEnvVar("PUBLIC_WEBSITE_URL") + \
+        f"/action?username={username}&url={url}"
     email_body = f"Hi {username},\n\nPlease click the following link to verify your account:\n\n{url}\n\nThanks,\n\nCloud Password Manager"
     return send_mail("Confirm your account", email_body, [recipient])
 
@@ -71,16 +73,16 @@ def manage_users():
         userDataValid = ValidateUserData(username, email, password)
 
         if userDataValid != "":  # Since the data is not valid, send the appropriate correction measure
-            return dumpJSON(userDataValid)
+            return dumpJSON(prepare_server_response_object(ServerResponseType.ERROR, body=userDataValid))
 
         # Make sure the username or email does not already exist in the database
         usernameExists = User.query.filter_by(username=username).first()
         if usernameExists:
-            return dumpJSON("Username is already taken!")
+            return dumpJSON(prepare_server_response_object(ServerResponseType.ERROR, body="Username is already taken!"))
 
         emailExists = User.query.filter_by(email=email).first()
         if emailExists:
-            return dumpJSON("Email is already taken!")
+            return dumpJSON(prepare_server_response_object(ServerResponseType.ERROR, body="Email is already taken!"))
 
         # Hash the passoord and get the salt used
         hashedPassword, salt = HashPassword(password)
@@ -94,7 +96,10 @@ def manage_users():
 
         # Send the verification email to the user
         if not send_verification_email(username, randomURL, email):
-            return dumpJSON("User could not be created! Please try again later!")
+            return dumpJSON(prepare_server_response_object(
+                ServerResponseType.ERROR,
+                body="User could not be created! Please try again later!"
+            ))
 
         # Get the user action table and create a new action
         userActionTable = get_user_action_table(username)
@@ -105,30 +110,38 @@ def manage_users():
         db.session.add(newUser)
         db.session.commit()
 
-        return dumpJSON("User created!")
+        return dumpJSON(prepare_server_response_object(
+            ServerResponseType.SUCCESSFUL,
+            body="Account created successfully! Please verify your account by following the directions specified in the email sent to you."
+        ))
 
-@app.route("/usernameavailable")
-@cross_origin()
+
+@ app.route("/usernameavailable")
+@ cross_origin()
 def username_available():
     username = request.args.get("username")
 
-    if username == None: return dumpJSON("Bad request")
-    if len(username) > 50: return dumpJSON(False)
+    if username == None:
+        return dumpJSON("Bad request")
+    if len(username) > 50:
+        return dumpJSON(False)
     # Get the user by the username
-    user : List[User] = User.query.filter_by(username=username).all();
+    user: List[User] = User.query.filter_by(username=username).all()
 
-    if len(user) and user[0].username == username: # The user name is not available
+    if len(user) and user[0].username == username:  # The user name is not available
         return dumpJSON(False)
 
     return dumpJSON(True)
 
-@app.route("/action")
-@cross_origin()
+
+@ app.route("/action")
+@ cross_origin()
 def manage_user_action():
     username = request.args.get('username')
-    url= request.args.get('url')
+    url = request.args.get('url')
 
-    if username == None or url == None: return dumpJSON("Bad Request")
+    if username == None or url == None:
+        return dumpJSON("Bad Request")
 
     # Check URL length
     if len(url) != 8:
@@ -165,22 +178,26 @@ def manage_user_action():
     else:
         return dumpJSON("Some problem occurred! Please try again later!")
 
-@app.route("/generatepassword")
-@cross_origin()
+
+@ app.route("/generatepassword")
+@ cross_origin()
 def generate_password():
     length = request.args.get('length', default=None, type=int)
     uppercase = request.args.get('uppercase', default=None, type=bool)
-    lowercase= request.args.get('lowercase', default=None, type=bool)
+    lowercase = request.args.get('lowercase', default=None, type=bool)
     numbers = request.args.get('numbers', default=None, type=bool)
     specials = request.args.get('specials', default=None, type=bool)
 
     incompleteData = length == None or uppercase == None or lowercase == None or numbers == None or specials == None
 
-    if incompleteData: return dumpJSON("Incomplete password attributes were sent!")
+    if incompleteData:
+        return dumpJSON("Incomplete password attributes were sent!")
 
-    generated_password = GeneratePassword(length,uppercase,lowercase,numbers,specials)
+    generated_password = GeneratePassword(
+        length, uppercase, lowercase, numbers, specials)
 
     return dumpJSON(generated_password)
+
 
 if __name__ == "__main__":
     with app.test_request_context():
