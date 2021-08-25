@@ -43,6 +43,8 @@ def ValidateUserData(username: str, email: str, password: str):
     # Validate password. Rules: length >= 8. Contains both numbers and alphabets
     if len(password) < 8:
         return "Password must be at least 8 characters long!"
+    if len(password) > 50:
+        return "Password must not be longer than 50 characters!"
     containsAlpha = containsNum = False
     for x in password:
         if x.isalpha():
