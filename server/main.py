@@ -73,16 +73,16 @@ def manage_users():
         userDataValid = ValidateUserData(username, email, password)
 
         if userDataValid != "":  # Since the data is not valid, send the appropriate correction measure
-            return dumpJSON(prepare_server_response_object(SERVER_RESPONSE_TYPE.ERROR, body=userDataValid))
+            return dumpJSON(prepare_server_response_object(SERVER_RESPONSE_TYPE['ERROR'], body=userDataValid))
 
         # Make sure the username or email does not already exist in the database
         usernameExists = User.query.filter_by(username=username).first()
         if usernameExists:
-            return dumpJSON(prepare_server_response_object(SERVER_RESPONSE_TYPE.ERROR, body="Username is already taken!"))
+            return dumpJSON(prepare_server_response_object(SERVER_RESPONSE_TYPE['ERROR'], body="Username is already taken!"))
 
         emailExists = User.query.filter_by(email=email).first()
         if emailExists:
-            return dumpJSON(prepare_server_response_object(SERVER_RESPONSE_TYPE.ERROR, body="Email is already taken!"))
+            return dumpJSON(prepare_server_response_object(SERVER_RESPONSE_TYPE['ERROR'], body="Email is already taken!"))
 
         # Hash the passoord and get the salt used
         hashedPassword, salt = HashPassword(password)
@@ -97,7 +97,7 @@ def manage_users():
         # Send the verification email to the user
         if not send_verification_email(username, randomURL, email):
             return dumpJSON(prepare_server_response_object(
-                SERVER_RESPONSE_TYPE.ERROR,
+                SERVER_RESPONSE_TYPE['ERROR'],
                 body="User could not be created! Please try again later!"
             ))
 
@@ -111,7 +111,7 @@ def manage_users():
         db.session.commit()
 
         return dumpJSON(prepare_server_response_object(
-            SERVER_RESPONSE_TYPE.SUCCESSFUL,
+            SERVER_RESPONSE_TYPE['SUCCESSFUL'],
             body="Account created successfully! Please verify your account by following the directions specified in the email sent to you."
         ))
 
