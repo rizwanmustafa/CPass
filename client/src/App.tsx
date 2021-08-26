@@ -1,6 +1,10 @@
+import SignupForm from "./components/SignupForm";
+
 const App = (): JSX.Element => {
 	return (
-		<h1>Hello World!</h1>
+		<>
+			<SignupForm />
+		</>
 	);
 }
 
