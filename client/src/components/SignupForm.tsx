@@ -50,52 +50,70 @@ const SignupForm = (): JSX.Element => {
 			},
 		})
 	)();
-	
+
 	interface IUserData {
 		username: string | null;
 		email: string | null;
 		password: string | null;
 	}
-	
+
 	const [userData, setUserData] = useState<IUserData>({
 		username: null,
 		email: null,
 		password: null,
 	});
-	
+
 	const [serverResponse, setServerResponse] = useState<IServerResponse>({})// This stores the latest server response
 	const [requestInProcess, setRequestInProcess] = useState<Boolean>(false);
 	const RegisterUser = async () => {
 		// This method registers the user on the server and sets the server response for display
 		setRequestInProcess(true);
-		
+
+		if (userData.username === null ||
+			userData.email === null ||
+			userData.password === null ||
+			usernameError !== "" ||
+			emailError !== "" ||
+			passwordError !== "") {
+			setUserData(prevState => {
+				return {
+					username: (prevState.username === null ? "" : prevState.username),
+					email: (prevState.email === null ? "" : prevState.email),
+					password: (prevState.password === null ? "" : prevState.password),
+				}
+			})
+
+			setRequestInProcess(false);
+			return;
+		}
+
 		try {
 			const fetchData = await axios.post("http://localhost:5000/users/", userData)
-			
+
 			const serverMessage: object = await fetchData.data;
-			
+
 			setServerResponse(serverMessage)
 		}
 		catch (e) {
 			console.error("Could not create user!", e)
 			setServerResponse({ type: ServerResponseType.Error, body: "Could not connect to server!", })
 		}
-		finally{
+		finally {
 			setRequestInProcess(false);
 		}
 	}
-	
+
 	const HandleInput = (e: React.ChangeEvent<HTMLInputElement>) => {
 		// This method deals with changes in the value of Input Elements for forms
-		
+
 		const newUserData = {
 			...userData,
 			[e.target.id]: e.target.value
 		}
-		
+
 		setUserData(newUserData)
 	}
-	
+
 	const [usernameAvailable, setUsernameAvailable] = useState<Boolean>(true);
 	const CheckUsernameAvailibility = async (username: string): Promise<boolean | null> => {
 		// This method sends a request to an API by server to check if the current username is available
@@ -177,6 +195,7 @@ const SignupForm = (): JSX.Element => {
 				onChange={HandleInput}
 				error={usernameError !== ""}
 				helperText={usernameError}
+				value={userData.username}
 			/>
 
 			<br />
@@ -189,6 +208,7 @@ const SignupForm = (): JSX.Element => {
 				onChange={HandleInput}
 				error={emailError !== ""}
 				helperText={emailError}
+				value={userData.email}
 			/>
 
 			<br />
@@ -201,6 +221,7 @@ const SignupForm = (): JSX.Element => {
 				onChange={HandleInput}
 				error={passwordError !== ""}
 				helperText={passwordError}
+				value={userData.password}
 			/>
 
 			<br />
