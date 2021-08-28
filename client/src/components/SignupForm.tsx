@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import React, { useState, useEffect } from "react";
 import axios from "axios";
 
 // Import necessary components from Material UI
@@ -27,11 +27,11 @@ const SignupForm = (): JSX.Element => {
 	const [emptyEmailWarning, setEmptyEmailWarning] = useState<boolean>(false);
 	const [emptyPasswordWarning, setEmptyPasswordWarning] = useState<boolean>(false)
 
-	const ToggleEmptyValueWarning = (e: React.FocusEvent<HTMLInputElement>) => {
+	const ToggleEmptyValueWarning = (e: React.FocusEvent | React.ChangeEvent) => {
 		// If all warnings are toggled, do not do anything
 		if (emptyUsernameWarning && emptyPasswordWarning && emptyEmailWarning) return;
 
-		const elementID: string = (e.target as HTMLInputElement).id;
+		const elementID: string = (e.target as HTMLElement).id;
 
 		if (!emptyUsernameWarning && elementID === "username") setEmptyUsernameWarning(true);
 		if (!emptyEmailWarning && elementID === "email") setEmptyEmailWarning(true);
@@ -76,6 +76,8 @@ const SignupForm = (): JSX.Element => {
 
 	const HandleInput = (e: React.ChangeEvent<HTMLInputElement>) => {
 		// This method deals with changes in the value of Input Elements for forms
+
+		ToggleEmptyValueWarning(e)
 
 		const newUserData = {
 			...userData,
