@@ -1,87 +1,58 @@
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect } from "react";
 import axios from "axios";
 
+// Import necessary components from Material UI
 import Button from "@material-ui/core/Button";
 import TextField from "@material-ui/core/TextField";
 import CircularProgress from "@material-ui/core/CircularProgress";
+import Typography from "@material-ui/core/Typography";
 
-import { createStyles, makeStyles, Theme } from "@material-ui/core/styles";
+// Import styles
+import FormStyles from "../styles/FormStyles";
 
 import clsx from "clsx";
-import { IServerResponse, ServerResponseType } from "../types";
+import { IServerResponse, ServerResponseType, IUserData } from "../types";
 import { isAlphaNumeric, hasAlphaNumeric, isValidEmail } from "../scripts/DataValidation";
-import { Typography } from "@material-ui/core";
 
 const SignupForm = (): JSX.Element => {
-	const classes = makeStyles((theme: Theme) => // This stores the classes used for styling the components
-		createStyles({
-			form: {
-				display: "flex",
-				flexDirection: "column",
-				width: "50vw",
-				maxWidth: "400px",
-				boxShadow: "lightgrey 0px 0px 20px 0px",
-				padding: 20,
-				borderRadius: 10,
-			},
-			heading: {
-				textAlign: "center",
-				marginBottom: 30,
-			},
-			button: {
-				position: "relative",
-				marginBottom: 20,
-			},
-			progressBar: {
-				position: 'absolute',
-			},
-
-			helperText: {
-				textAlign: "center",
-			},
-			error: {
-				color: "red",
-			},
-			successful: {
-				color: "green",
-			},
-			warning: {
-				color: "orange",
-			},
-		})
-	)();
-
-	interface IUserData {
-		username: string | null;
-		email: string | null;
-		password: string | null;
-	}
+	const formClasses = FormStyles();
 
 	const [userData, setUserData] = useState<IUserData>({
-		username: null,
-		email: null,
-		password: null,
+		username: "",
+		email: "",
+		password: "",
 	});
 
+	const [emptyUsernameWarning, setEmptyUsernameWarning] = useState<boolean>(false);
+	const [emptyEmailWarning, setEmptyEmailWarning] = useState<boolean>(false);
+	const [emptyPasswordWarning, setEmptyPasswordWarning] = useState<boolean>(false)
+
+	const ToggleEmptyValueWarning = (e: React.FocusEvent<HTMLInputElement>) => {
+		// If all warnings are toggled, do not do anything
+		if (emptyUsernameWarning && emptyPasswordWarning && emptyEmailWarning) return;
+
+		const elementID: string = (e.target as HTMLInputElement).id;
+
+		if (!emptyUsernameWarning && elementID === "username") setEmptyUsernameWarning(true);
+		if (!emptyEmailWarning && elementID === "email") setEmptyEmailWarning(true);
+		if (!emptyPasswordWarning && elementID === "password") setEmptyPasswordWarning(true);
+	}
+
 	const [serverResponse, setServerResponse] = useState<IServerResponse>({})// This stores the latest server response
-	const [requestInProcess, setRequestInProcess] = useState<Boolean>(false);
+	const [requestInProcess, setRequestInProcess] = useState<boolean>(false);
+
 	const RegisterUser = async () => {
 		// This method registers the user on the server and sets the server response for display
 		setRequestInProcess(true);
 
-		if (userData.username === null ||
-			userData.email === null ||
-			userData.password === null ||
-			usernameError !== "" ||
-			emailError !== "" ||
-			passwordError !== "") {
-			setUserData(prevState => {
-				return {
-					username: (prevState.username === null ? "" : prevState.username),
-					email: (prevState.email === null ? "" : prevState.email),
-					password: (prevState.password === null ? "" : prevState.password),
-				}
-			})
+		if (userData.username.trim() === "" || userData.email.trim() === "" || userData.password.trim() === "" ||
+			usernameError !== "" || emailError !== "" || passwordError !== "") {
+			// If there is an error with any of the fields or the value of the any of fields is empty or whitespace,
+			// toggle all the warnings on and return back
+
+			if (!emptyUsernameWarning) setEmptyUsernameWarning(true);
+			if (!emptyEmailWarning) setEmptyEmailWarning(true);
+			if (!emptyPasswordWarning) setEmptyPasswordWarning(true);
 
 			setRequestInProcess(false);
 			return;
@@ -114,8 +85,9 @@ const SignupForm = (): JSX.Element => {
 		setUserData(newUserData)
 	}
 
-	const [usernameAvailable, setUsernameAvailable] = useState<Boolean>(true);
-	const CheckUsernameAvailibility = async (username: string): Promise<boolean | null> => {
+
+	const [usernameAvailable, setUsernameAvailable] = useState<boolean>(true);
+	const CheckUsernameAvailibility = async (username: string): Promise<boolean> => {
 		// This method sends a request to an API by server to check if the current username is available
 		try {
 			const fetchData = await axios.get(`http://localhost:5000/usernameavailable?username=${username}`);
@@ -125,14 +97,14 @@ const SignupForm = (): JSX.Element => {
 		catch (error) {
 			console.error("Could not check if the username is available!", error);
 
-			return null;
+			return false;
 		}
 	}
 
 	useEffect(() => {
 		// Everytime the username changes update its availability status
 		if (userData.username !== null && userData.username.trim() !== "")
-			CheckUsernameAvailibility(userData.username).then(available => setUsernameAvailable(available));
+			CheckUsernameAvailibility(userData.username).then(usernameAvail => setUsernameAvailable(usernameAvail));
 	}, [userData.username])
 
 	// Everytime username changes, make sure it is valid and available
@@ -142,7 +114,7 @@ const SignupForm = (): JSX.Element => {
 
 		else if (userData.username.length > 50) setUsernameError("Username cannot be longer than 50 characters!")
 
-		else if (userData.username.trim() === "") setUsernameError("Username cannot be empty or whitespace!")
+		else if (emptyUsernameWarning && userData.username.trim() === "") setUsernameError("Username cannot be empty or whitespace!")
 
 		else if (!isAlphaNumeric(userData.username)) setUsernameError("Username must only be alphanumeric!")
 
@@ -150,42 +122,48 @@ const SignupForm = (): JSX.Element => {
 
 		else setUsernameError("")
 
-	}, [userData.username, usernameAvailable])
+	}, [userData.username, usernameAvailable, emptyUsernameWarning])
 
 	// Everytime email changes, make sure it is valid
 	const [emailError, setEmailError] = useState<string>("");
 	useEffect(() => {
 		if (userData.email === null) return
 
-		else if (userData.email.trim() === "") setEmailError("Email cannot be empty or whitespace!")
+		else if (emptyEmailWarning && userData.email.trim() === "") setEmailError("Email cannot be empty or whitespace!")
 
-		else if (!isValidEmail(userData.email)) setEmailError("Invalid email entered!")
+		else if (emptyEmailWarning) {
 
-		else setEmailError("")
+			if (!isValidEmail(userData.email)) setEmailError("Invalid email entered!")
 
-	}, [userData.email])
+			else setEmailError("")
+		}
+
+	}, [userData.email, emptyEmailWarning])
 
 	// Everytime password changes, make sure it is valid
 	const [passwordError, setPasswordError] = useState<string>("");
 	useEffect(() => {
 		if (userData.password === null) return
 
-		else if (userData.password.trim() === "") setPasswordError("Password cannot be empty or whitespace!")
+		else if (emptyPasswordWarning && userData.password.trim() === "") setPasswordError("Password cannot be empty or whitespace!")
 
-		else if (userData.password.length < 8) setPasswordError("Password must be at least 8 characters long!")
+		else if (emptyPasswordWarning) {
 
-		else if (userData.password.length > 50) setPasswordError("Password must not be longer than 50 characters!")
+			if (userData.password.length < 8) setPasswordError("Password must be at least 8 characters long!")
 
-		else if (!hasAlphaNumeric(userData.password)) setPasswordError("Password must contain alphanumeric characters!")
+			else if (userData.password.length > 50) setPasswordError("Password must not be longer than 50 characters!")
 
-		else setPasswordError("")
+			else if (!hasAlphaNumeric(userData.password)) setPasswordError("Password must contain alphanumeric characters!")
 
-	}, [userData.password])
+			else setPasswordError("")
+		}
+
+	}, [userData.password, emptyPasswordWarning])
 
 
 	return (
-		<form className={classes.form}>
-			<Typography variant="h4" component="h1" className={classes.heading} color="textPrimary">Create your Account</Typography>
+		<form className={formClasses.form}>
+			<Typography variant="h4" component="h1" className={formClasses.heading} color="textPrimary">Create your Account</Typography>
 
 			<TextField
 				variant="outlined"
@@ -193,6 +171,7 @@ const SignupForm = (): JSX.Element => {
 				type="text"
 				id="username"
 				onChange={HandleInput}
+				onBlur={ToggleEmptyValueWarning}
 				error={usernameError !== ""}
 				helperText={usernameError}
 				value={userData.username}
@@ -206,6 +185,7 @@ const SignupForm = (): JSX.Element => {
 				type="email"
 				id="email"
 				onChange={HandleInput}
+				onBlur={ToggleEmptyValueWarning}
 				error={emailError !== ""}
 				helperText={emailError}
 				value={userData.email}
@@ -219,6 +199,7 @@ const SignupForm = (): JSX.Element => {
 				type="password"
 				id="password"
 				onChange={HandleInput}
+				onBlur={ToggleEmptyValueWarning}
 				error={passwordError !== ""}
 				helperText={passwordError}
 				value={userData.password}
@@ -229,14 +210,14 @@ const SignupForm = (): JSX.Element => {
 				variant="contained"
 				color="primary"
 				onClick={RegisterUser}
-				className={classes.button}
+				className={formClasses.button}
 				disabled={requestInProcess}
 			>
 				Sign Up
 				{requestInProcess &&
 					<CircularProgress
 						size={24}
-						className={classes.progressBar}
+						className={formClasses.progressBar}
 					/>
 				}
 			</Button>
@@ -244,10 +225,10 @@ const SignupForm = (): JSX.Element => {
 			{
 				serverResponse.body === undefined ||
 				<Typography variant="body1" className={clsx({
-					[classes.helperText]: true,
-					[classes.successful]: serverResponse.type === ServerResponseType.Successful,
-					[classes.error]: serverResponse.type === ServerResponseType.Error,
-					[classes.warning]: serverResponse.type === ServerResponseType.Warning
+					[formClasses.helperText]: true,
+					[formClasses.successful]: serverResponse.type === ServerResponseType.Successful,
+					[formClasses.error]: serverResponse.type === ServerResponseType.Error,
+					[formClasses.warning]: serverResponse.type === ServerResponseType.Warning
 				})}>
 					{serverResponse.body}
 				</Typography>
