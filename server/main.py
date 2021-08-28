@@ -205,7 +205,7 @@ def manage_tokens():
     data = request.get_json()
     ipAddress = request.remote_addr
 
-    if not data['username'] or not data['mode']:
+    if 'username' not in data or 'mode' not in data:
         return prepare_server_response_object(SERVER_RESPONSE_TYPE['ERROR'], body="Bad Request!")
 
     # Make sure the user exists and email is verified
@@ -221,7 +221,7 @@ def manage_tokens():
         return prepare_server_response_object(SERVER_RESPONSE_TYPE['ERROR'], body="Please verify your email before you log in!")
 
     if data['mode'].lower() == "generate":
-        if not data['password']:
+        if 'password' not in data:
             return prepare_server_response_object(SERVER_RESPONSE_TYPE['ERROR'], body="Bad Request!")
 
         # If the password is incorrect, return an error
@@ -244,13 +244,13 @@ def manage_tokens():
 
     elif data['mode'].lower() == "activate":
 
-        if not data['token'] or not data['activation_code']:
+        if 'token' not in data or 'activation_code' not in data:
             return prepare_server_response_object(SERVER_RESPONSE_TYPE['ERROR'], body="Bad Request!")
 
         return activate_token(userObject.username, data['token'], data['activation_code'])
 
     elif data['mode'].lower() == "status":
-        if not data['token']:
+        if 'token' not in data:
             return prepare_server_response_object(SERVER_RESPONSE_TYPE['ERROR'], body="Bad Request!")
 
         userTokenTable = get_user_tokens_table(data['username'])
@@ -298,7 +298,8 @@ def generate_token(userObject: User, ip_address: str):
 
 def activate_token(username: str, token: str, activation_code: str):
     userTokenTable = get_user_tokens_table(username)
-    userToken: userTokenTable = userTokenTable.query.filter_by(token=token)
+    userToken: userTokenTable = userTokenTable.query.filter_by(
+        token=token).all()
 
     # If the token does not exist or is already activated, send an error
     if not userToken or userToken[0].activated or userToken[0].expiry_date <= datetime.now():
@@ -311,7 +312,8 @@ def activate_token(username: str, token: str, activation_code: str):
 
     else:
         userToken.activated = True
-        return get_token_status(username, userToken.token)
+        db.session.commit()
+        return get_token_status(userToken)
 
 
 def get_token_status(userToken):

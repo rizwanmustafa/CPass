@@ -3,8 +3,6 @@ from datetime import datetime
 
 db: SQLAlchemy = SQLAlchemy()
 
-userActionTables : dict = dict()
-
 
 class User(db.Model):
     __tablename__ = "users"
@@ -52,10 +50,9 @@ def get_user_actions_table(username: str):
 
 def get_user_tokens_table(username: str):
     # This table stores the generated tokens for a particular user
-    if username in userActionTables: return userActionTables[username]
     class TokenTable(db.Model):
         __tablename__ = f'userTokens${username}'
-        __table_args___ = {
+        __table_args__ = {
             # This is so that we can get this table agian even though it is already defined
             'extend_existing': True
         }
@@ -72,5 +69,4 @@ def get_user_tokens_table(username: str):
             self.expiry_date = expiry_date
 
     db.create_all()
-    userActionTables[username] = TokenTable
     return TokenTable
