@@ -38,6 +38,6 @@ export const hasAlphaNumeric = (str: string | null): boolean => {
 export const isValidEmail = (email: string | null): boolean => {
 	if (email === null) return true
 
-	const emailRegex = /^[a-z0-9]+[\._]?[a-z0-9]+[@]\w+[.]\w{2,3}$/
+	const emailRegex = /^[a-z0-9]+[._]?[a-z0-9]+[@]\w+[.]\w{2,3}$/
 	return emailRegex.test(email)
 }
