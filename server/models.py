@@ -23,12 +23,12 @@ class User(db.Model):
         self.twoFactorAuthEnabled = twoFactorAuthEnabled
 
 
-def get_user_action_table(username: str):
+def get_user_actions_table(username: str):
     # This table stores that action URLs for a particular user
     class ActionTable(db.Model):
-        __tablename__ = f'userAction${username}'
+        __tablename__ = f'userActions${username}'
         __table_args__ = {
-            # This is so that when we get this table again even though it is already defined
+            # This is so that we can get this table again even though it is already defined
             'extend_existing': True,
         }
 
@@ -46,3 +46,26 @@ def get_user_action_table(username: str):
     # Create the table
     db.create_all()
     return ActionTable
+
+
+def get_user_tokens_table(username: str):
+    # This table stores the generated tokens for a particular user
+    class TokenTable(db.Model):
+        __tablename__ = f'userTokens${username}'
+        __table_args___ = {
+            # This is so that we can get this table agian even though it is already defined
+            'extend_existing': True
+        }
+
+        code = db.Column(db.String(8), nullable=False, primary_key=True)
+        activated = db.Column(db.Boolean, nullable=False)
+        activation_code = db.Column(db.String(8), nullable=False)
+        expiry_date = db.Column(db.DateTime, nullable=False)
+
+        def __init__(self, code: str, activated: bool, activation_code: str, expiry_date: datetime):
+            self.code = code
+            self.activated = activated
+            self.activation_code = activation_code
+            self.expiry_date = expiry_date
+
+    return TokenTable
