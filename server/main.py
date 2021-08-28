@@ -11,7 +11,7 @@ from decouple import config as GetEnvVar
 
 from Utility import HashPassword, ValidateUserData, generate_random_string
 from Utility import prepare_server_response_object, SERVER_RESPONSE_TYPE
-from models import get_user_action_table, db, User
+from models import get_user_actions_table, db, User, get_user_tokens_table
 
 app = Flask(__name__)
 # Update Flask App config
@@ -48,7 +48,7 @@ def send_mail(subject: str, body: str, recipients: List[str]) -> bool:
 
 @app.route("/")
 def test():
-    return dumpJSON("This is just a test function!")
+    return dumpJSON(request.remote_addr)
 
 
 def send_verification_email(username: str, url: str, recipient: str):
@@ -76,11 +76,11 @@ def manage_users():
             return dumpJSON(prepare_server_response_object(SERVER_RESPONSE_TYPE['ERROR'], body=userDataValid))
 
         # Make sure the username or email does not already exist in the database
-        usernameExists = User.query.filter_by(username=username).first()
+        usernameExists = User.query.filter_by(username=username).all()
         if usernameExists:
             return dumpJSON(prepare_server_response_object(SERVER_RESPONSE_TYPE['ERROR'], body="Username is already taken!"))
 
-        emailExists = User.query.filter_by(email=email).first()
+        emailExists = User.query.filter_by(email=email).all()
         if emailExists:
             return dumpJSON(prepare_server_response_object(SERVER_RESPONSE_TYPE['ERROR'], body="Email is already taken!"))
 
@@ -102,7 +102,7 @@ def manage_users():
             ))
 
         # Get the user action table and create a new action
-        userActionTable = get_user_action_table(username)
+        userActionTable = get_user_actions_table(username)
         userAction = userActionTable(randomURL, 1, expiry_time)
 
         # Add the user object and action object to the database and commit the changes
@@ -153,7 +153,7 @@ def manage_user_action():
         return dumpJSON("Bad Request")  # User does not exist
 
     # Check if the URL exists
-    userActionTable = get_user_action_table(username)
+    userActionTable = get_user_actions_table(username)
     userAction: List[userActionTable] = userActionTable.query.filter_by(
         url=url).all()
 
@@ -197,6 +197,128 @@ def generate_password():
         length, uppercase, lowercase, numbers, specials)
 
     return dumpJSON(generated_password)
+
+
+@app.route("/tokens/", methods=["POST"])
+@cross_origin()
+def manage_tokens():
+    data = request.get_json()
+    ipAddress = request.remote_addr
+
+    if not data['username'] or not data['mode']:
+        return prepare_server_response_object(SERVER_RESPONSE_TYPE['ERROR'], body="Bad Request!")
+
+    # Make sure the user exists and email is verified
+    userObject: User = User.query.filter_by(
+        username=data['username']).all()
+
+    if not userObject:
+        return prepare_server_response_object(SERVER_RESPONSE_TYPE['ERROR'], body="Bad Request!")
+
+    userObject = userObject[0]
+
+    if not userObject.emailVerified:
+        return prepare_server_response_object(SERVER_RESPONSE_TYPE['ERROR'], body="Please verify your email before you log in!")
+
+    if data['mode'].lower() == "generate":
+        if not data['password']:
+            return prepare_server_response_object(SERVER_RESPONSE_TYPE['ERROR'], body="Bad Request!")
+
+        # If the password is incorrect, return an error
+        hashedPassword, saltUsed = HashPassword(
+            data['password'], userObject.salt)
+        if hashedPassword != userObject.password:
+            # Send email that a login attempt to their account was made
+            send_mail(
+                "Login Attempt", f"Hi {userObject.username},\n\nThere has been a failed login attempt to your account!\n\nIP Address of Login Attempt: {ipAddress}\n\nIf this was not you, we recommend you to make your account secure.", [userObject.email])
+            return prepare_server_response_object(SERVER_RESPONSE_TYPE['ERROR'], body="Incorrect Password!")
+
+        gen_token = generate_token(userObject, ipAddress)
+
+        # If the token was not created, return error
+        if gen_token == "":
+            return prepare_server_response_object(SERVER_RESPONSE_TYPE['ERROR'], body="Could not log you in! Please try again later!")
+
+        else:
+            return prepare_server_response_object(SERVER_RESPONSE_TYPE['SUCCESSFUL'], data={'token': gen_token, })
+
+    elif data['mode'].lower() == "activate":
+
+        if not data['token'] or not data['activation_code']:
+            return prepare_server_response_object(SERVER_RESPONSE_TYPE['ERROR'], body="Bad Request!")
+
+        return activate_token(userObject.username, data['token'], data['activation_code'])
+
+    elif data['mode'].lower() == "status":
+        if not data['token']:
+            return prepare_server_response_object(SERVER_RESPONSE_TYPE['ERROR'], body="Bad Request!")
+
+        userTokenTable = get_user_tokens_table(data['username'])
+        userToken: userTokenTable = userTokenTable.query.filter_by(
+            token=data['token']).all()
+
+        # If the token does not exist, return error
+        if not userToken:
+            return prepare_server_response_object(SERVER_RESPONSE_TYPE['ERROR'], body="Bad Request!")
+
+        userToken = userToken[0]
+
+        return get_token_status(userToken)
+    else:
+        dumpJSON(prepare_server_response_object(
+            SERVER_RESPONSE_TYPE['ERROR'], body="Bad Request!"))
+
+
+def generate_token(userObject: User, ip_address: str):
+    userTokenTable = get_user_tokens_table(userObject.username)
+
+    # keep generating tokens as long as it is already been used for the user
+    gen_token = generate_random_string(8)
+    while userTokenTable.query.filter_by(token=gen_token).all() != []:
+        print(userTokenTable.query.filter_by(token=gen_token).all())
+        gen_token = generate_random_string(8)
+
+    activation_code = generate_random_string(8)
+    expiryTime = datetime.now() + timedelta(minutes=15)
+
+    userToken = userTokenTable(gen_token, False, activation_code, expiryTime)
+
+    # Send an activation email for the token to the user email along with ip address of login attempt
+    username = userObject.username
+    email = userObject.email
+    sentMail = send_mail(
+        "Verify Login!", f"Hi {username},\n\nPlease input the following code to verify your login: {activation_code}\n\nIP Address of login attempt: {ip_address}\n\nIf this wasn't you, we recommend you to change your password immediately!", [email])
+
+    if sentMail:    # Add the token to the database if email was successfully sent!
+        db.session.add(userToken)
+        db.session.commit()
+
+    return gen_token if sentMail else ""
+
+
+def activate_token(username: str, token: str, activation_code: str):
+    userTokenTable = get_user_tokens_table(username)
+    userToken: userTokenTable = userTokenTable.query.filter_by(token=token)
+
+    # If the token does not exist or is already activated, send an error
+    if not userToken or userToken[0].activated or userToken[0].expiry_date <= datetime.now():
+        return prepare_server_response_object(SERVER_RESPONSE_TYPE['ERROR'], body="Bad Request!")
+
+    userToken = userToken[0]
+
+    if userToken.activation_code != activation_code:
+        return prepare_server_response_object(SERVER_RESPONSE_TYPE['ERROR'], body="Wrong Activation Code!")
+
+    else:
+        userToken.activated = True
+        return get_token_status(username, userToken.token)
+
+
+def get_token_status(userToken):
+    return prepare_server_response_object(SERVER_RESPONSE_TYPE['SUCCESSFUL'], data={
+        'activated': userToken.activated,
+        'expired': userToken.expiry_date <= datetime.now()
+    })
 
 
 if __name__ == "__main__":
