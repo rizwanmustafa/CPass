@@ -12,8 +12,14 @@ export enum ServerResponseType {
 }
 
 export interface IServerResponse {
-	type: ServerResponseType;
+	type?: ServerResponseType;
 	heading?: string;
 	body?: string;
 	data?: string;
+}
+
+export interface IUserData {
+	username: string;
+	email: string;
+	password: string;
 }
