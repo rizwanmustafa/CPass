@@ -36,6 +36,9 @@ const FormStyles = makeStyles((theme: Theme) => // This stores the classes used 
 		warning: {
 			color: "orange",
 		},
+		pointerChange: {
+			cursor: "pointer",
+		},
 	})
 );
 

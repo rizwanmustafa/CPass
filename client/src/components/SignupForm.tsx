@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from "react";
+import { useHistory } from "react-router-dom";
 import axios from "axios";
 
 // Import necessary components from Material UI
@@ -15,6 +16,7 @@ import { IServerResponse, ServerResponseType, IUserData } from "../types";
 import { isAlphaNumeric, hasAlphaNumeric, isValidEmail } from "../scripts/DataValidation";
 
 const SignupForm = (): JSX.Element => {
+	const history = useHistory();
 	const formClasses = FormStyles();
 
 	const [userData, setUserData] = useState<IUserData>({
@@ -76,6 +78,7 @@ const SignupForm = (): JSX.Element => {
 
 	const HandleInput = (e: React.ChangeEvent<HTMLInputElement>) => {
 		// This method deals with changes in the value of Input Elements for forms
+		console.log(e);
 
 		ToggleEmptyValueWarning(e)
 
@@ -162,6 +165,10 @@ const SignupForm = (): JSX.Element => {
 
 	}, [userData.password, emptyPasswordWarning])
 
+	const RedirectToSignInPage = () => {
+		history.push("/signin")
+	}
+
 
 	return (
 		<form className={formClasses.form}>
@@ -223,6 +230,12 @@ const SignupForm = (): JSX.Element => {
 					/>
 				}
 			</Button>
+
+			<Typography variant="body1" onClick={RedirectToSignInPage} className={clsx({
+				[formClasses.helperText]: true,
+				[formClasses.pointerChange]: true,
+			})
+			}>Already have an account? Click here to sign in</Typography>
 
 			{
 				serverResponse.body === undefined ||

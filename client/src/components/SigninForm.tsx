@@ -1,4 +1,5 @@
 import React, { useState } from "react";
+import { useHistory } from "react-router-dom";
 import axios from "axios";
 
 // Import interfaces
@@ -22,6 +23,7 @@ interface Props {
 
 const SigninForm = (props: Props): JSX.Element => {
 	const formClasses = FormStyles();
+	const history = useHistory();
 
 	const [userData, setUserData] = useState<IUserData>({
 		username: "",
@@ -91,6 +93,10 @@ const SigninForm = (props: Props): JSX.Element => {
 		else if (!emptyPasswordWarning && elementID === "password") setEmptyPasswordWarning(true);
 	}
 
+	const RedirectToSignUpPage = () => {
+		history.push("/signup");
+	}
+
 	return (
 		<form className={formClasses.form}>
 			<Typography variant="h4" component="h1" className={formClasses.heading} color="textPrimary">Sign in to your Account</Typography>
@@ -138,6 +144,12 @@ const SigninForm = (props: Props): JSX.Element => {
 					/>
 				}
 			</Button>
+
+			<Typography variant="body1" onClick={RedirectToSignUpPage} className={clsx({
+				[formClasses.helperText]: true,
+				[formClasses.pointerChange]: true,
+			})
+			}>Do not have an account? Click here to create one</Typography>
 
 			{
 				serverResponse.body === undefined ||
