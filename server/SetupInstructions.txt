@@ -1,0 +1,8 @@
+# This document contains instructions to set this server.
+# You can also use the setup script to do the same thing.
+
+Instructions:
+- Setup a database and a user for accessing it
+- Setup your mail server
+- Generate a secure 'secret_key'
+- Create an env file using the template provided ("env_template.txt") and fill all the settings
