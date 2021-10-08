@@ -207,15 +207,3 @@ if __name__ == "__main__":
                         db_settings, mail_settings)
 
     print("\n" + '\033[92m' + "Server successfully set up!" + '\033[0m')
-
-
-"""
-Objectives
-
-- Ask for settings for MAIL SMTP (Optional) (Done)
-- Fill out fields for .env file using input from the user
-    - Create an empty string variable which contains the supposed contents of the .env file
-    - Add to that .env file content variable on every step
-    - If everything goes well, overwrite any existing .env file and write the contents to it.
-
-"""
