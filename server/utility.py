@@ -3,24 +3,23 @@ import re
 import hashlib
 from random import randint, choice
 from string import ascii_letters as alphabets
-from enum import Enum
 
 
-def HashPassword(password: str, saltUsed: bytes = None):
-    if saltUsed == None:
-        saltUsed = urandom(32)
+def HashPassword(password: str, salt_used: bytes = None):
+    if salt_used == None:
+        salt_used = urandom(32)
 
-    hashedPassword = hashlib.pbkdf2_hmac(
+    hashed_password = hashlib.pbkdf2_hmac(
         'sha256',  # The hashing algorithm
         password.encode('utf-8'),  # Convert the password to bytes
-        saltUsed,
+        salt_used,
         100000  # It is recommended to use at least 100,000 iterations of SHA-256 for safety
     )
 
-    return hashedPassword, saltUsed
+    return hashed_password, salt_used
 
 
-def ValidateUserData(username: str, email: str, password: str):
+def validate_user_data(username: str, email: str, password: str):
     # Presence check for all variables
     if username == None or username == "":
         return "Username cannot be empty!"
@@ -37,7 +36,7 @@ def ValidateUserData(username: str, email: str, password: str):
         return "Username should not be longer than 50 characters!"
 
     # Validate email
-    if not IsValidEmail(email):
+    if not is_valid_email(email):
         return "Please enter a valid email!"
 
     # Validate password. Rules: length >= 8. Contains both numbers and alphabets
@@ -45,30 +44,30 @@ def ValidateUserData(username: str, email: str, password: str):
         return "Password must be at least 8 characters long!"
     if len(password) > 50:
         return "Password must not be longer than 50 characters!"
-    containsAlpha = containsNum = False
+    contains_alpha = contains_num = False
     for x in password:
         if x.isalpha():
-            containsAlpha = True
+            contains_alpha = True
         if x.isnumeric():
-            containsNum = True
+            contains_num = True
 
-        if containsAlpha and containsNum:
+        if contains_alpha and contains_num:
             break
 
-    if containsAlpha == False or containsNum == False:
+    if contains_alpha == False or contains_num == False:
         return "Password must be alphanumeric"
 
     return ""
 
 
-def IsValidEmail(email: str) -> bool:
+def is_valid_email(email: str) -> bool:
     if not re.search('^[a-z0-9]+[\._]?[a-z0-9]+[@]\w+[.]\w{2,3}$', email):
         return False
 
     return True
 
 
-def generate_random_string(length: int):
+def gen_rand_str(length: int):
     string:  str = ""
 
     for x in range(length):
@@ -86,7 +85,7 @@ SERVER_RESPONSE_TYPE = {
     'WARNING': 3,
 }
 
-def prepare_server_response_object(type: int, heading: str = None, body: str = None, data: dict = None) -> dict:
+def prep_server_response(type: int, heading: str = None, body: str = None, data: dict = None) -> dict:
     server_response = {"type": type}
 
     if heading:
