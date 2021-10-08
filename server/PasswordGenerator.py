@@ -1,15 +1,14 @@
-import string
+from string import ascii_lowercase, ascii_uppercase, ascii_lowercase, digits, punctuation
 from secrets import choice, randbelow
 
 
 def GeneratePassword(length: int, uppercase: bool, lowercase: bool, numbers: bool, specials: bool) -> str:
-    if length > 50 or length < 8:
-        return "Password length must be between 8 and 50 inclusive!"
-
     if uppercase == lowercase == numbers == specials == False:
-        return "All options cannot be turned off!"
+        return None
 
     password: str = ""
+    last_char: str = None
+    second_last_char: str = None
 
     while True:
         if len(password) == length:
@@ -36,11 +35,12 @@ def GeneratePassword(length: int, uppercase: bool, lowercase: bool, numbers: boo
         # Add random character to password string
         charType: int = randbelow(4)
 
-        randomChar = choice(string.ascii_uppercase) if charType == 0 and uppercase else choice(string.ascii_lowercase) if charType == 1 and lowercase else choice(
-            string.digits) if charType == 2 and numbers else choice(string.punctuation) if specials else None
+        random_char = choice(ascii_uppercase) if charType == 0 and uppercase else choice(ascii_lowercase) if charType == 1 and lowercase else choice(
+            digits) if charType == 2 and numbers else choice(punctuation) if specials else None
 
-        charRepeated = False if len(password) < 2 else (
-            randomChar == password[-1] and randomChar == password[-2])
+        char_repeated = False if last_char == None or not last_char == random_char or not second_last_char == random_char else True
 
-        if randomChar and not charRepeated:
-            password += randomChar
+        if random_char and not char_repeated:
+            password += random_char
+            second_last_char = last_char
+            last_char = second_last_char
