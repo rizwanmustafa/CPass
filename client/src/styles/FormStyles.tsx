@@ -26,6 +26,7 @@ const FormStyles = makeStyles((theme: Theme) => // This stores the classes used 
 
 		helperText: {
 			textAlign: "center",
+			paddingBottom: "10px",
 		},
 		error: {
 			color: "red",

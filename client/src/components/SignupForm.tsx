@@ -231,12 +231,6 @@ const SignupForm = (): JSX.Element => {
 				}
 			</Button>
 
-			<Typography variant="body1" onClick={RedirectToSignInPage} className={clsx({
-				[formClasses.helperText]: true,
-				[formClasses.pointerChange]: true,
-			})
-			}>Already have an account? Click here to sign in</Typography>
-
 			{
 				serverResponse.body === undefined ||
 				<Typography variant="body1" className={clsx({
@@ -248,6 +242,13 @@ const SignupForm = (): JSX.Element => {
 					{serverResponse.body}
 				</Typography>
 			}
+
+			<Typography variant="body1" onClick={RedirectToSignInPage} className={clsx({
+				[formClasses.helperText]: true,
+				[formClasses.pointerChange]: true,
+			})
+			}>Already have an account? Click here to sign in</Typography>
+
 
 		</form>
 	);

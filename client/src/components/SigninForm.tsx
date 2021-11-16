@@ -145,12 +145,6 @@ const SigninForm = (props: Props): JSX.Element => {
 				}
 			</Button>
 
-			<Typography variant="body1" onClick={RedirectToSignUpPage} className={clsx({
-				[formClasses.helperText]: true,
-				[formClasses.pointerChange]: true,
-			})
-			}>Do not have an account? Click here to create one</Typography>
-
 			{
 				serverResponse.body === undefined ||
 				<Typography variant="body1" className={clsx({
@@ -162,6 +156,12 @@ const SigninForm = (props: Props): JSX.Element => {
 					{serverResponse.body}
 				</Typography>
 			}
+
+			<Typography variant="body1" onClick={RedirectToSignUpPage} className={clsx({
+				[formClasses.helperText]: true,
+				[formClasses.pointerChange]: true,
+			})
+			}>Do not have an account? Click here to create one</Typography>
 
 		</form>
 	);
