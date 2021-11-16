@@ -1,3 +1,4 @@
+#!/usr/bin/env python3
 from datetime import datetime, timedelta
 from PasswordGenerator import GeneratePassword
 from typing import List
@@ -46,6 +47,7 @@ def test():
 @ app.route("/users/", methods=["POST"])
 @ cross_origin()
 def manage_users():
+    # Create, manage and delete user related stuff here
     if request.method == "POST":
         # Get user data
         userData = request.get_json()
@@ -259,4 +261,4 @@ def manage_tokens():
 if __name__ == "__main__":
     with app.test_request_context():
         db.create_all()
-    app.run(debug=True)
+    app.run(host="::", debug=True)
