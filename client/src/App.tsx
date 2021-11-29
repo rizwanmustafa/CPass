@@ -10,58 +10,58 @@ import SigninForm from "./components/SigninForm";
 import VerifyLogin from "./components/VerifyLogin";
 
 const App = (): JSX.Element => {
-	const history = useHistory();
+    const history = useHistory();
 
-	const [username, setUsername] = useState<string>("");
-	const [userToken, setUserToken] = useState<string>("");
-	const [tokenStatus, setTokenStatus] = useState<ITokenStatus>({
-		activated: false,
-		expired: false,
-	})
+    const [username, setUsername] = useState<string>("");
+    const [userToken, setUserToken] = useState<string>("");
+    const [tokenStatus, setTokenStatus] = useState<ITokenStatus>({
+        activated: false,
+        expired: false,
+    })
 
-	useEffect(() => {
-		// Whenever the state regarding token changes, we need to redirect the user to its appropriate place
-		if (userToken === "") history.push("/signin")
+    useEffect(() => {
+        // Whenever the state regarding token changes, we need to redirect the user to its appropriate place
+        if (userToken === "") history.push("/signin")
 
-		else if (tokenStatus.expired) {
-			setUserToken("");
-			setTokenStatus({
-				activated: false,
-				expired: false,
-			})
-		}
+        else if (tokenStatus.expired) {
+            setUserToken("");
+            setTokenStatus({
+                activated: false,
+                expired: false,
+            })
+        }
 
-		else if (!tokenStatus.activated) {
-			history.push("/verify")
-		}
+        else if (!tokenStatus.activated) {
+            history.push("/verify")
+        }
 
-		else history.push("/")
+        else history.push("/")
 
-	}, [userToken, tokenStatus])
+    }, [userToken, tokenStatus])
 
-	return (
-		<Switch>
-			<Route path="/signin" exact>
-				<SigninForm
-					setUsername={setUsername}
-					setUserToken={setUserToken}
-				/>
-			</Route>
+    return (
+        <Switch>
+            <Route path="/signin" exact>
+                <SigninForm
+                    setUsername={setUsername}
+                    setUserToken={setUserToken}
+                />
+            </Route>
 
-			<Route path="/signup" exact>
-				<SignupForm />
-			</Route>
+            <Route path="/signup" exact>
+                <SignupForm />
+            </Route>
 
-			<Route path="/verify" exact>
-				<VerifyLogin
-					username={username}
-					token={userToken}
-					tokenStatus={tokenStatus}
-					setTokenStatus={setTokenStatus}
-				/>
-			</Route>
-		</Switch>
-	);
+            <Route path="/verify" exact>
+                <VerifyLogin
+                    username={username}
+                    token={userToken}
+                    tokenStatus={tokenStatus}
+                    setTokenStatus={setTokenStatus}
+                />
+            </Route>
+        </Switch>
+    );
 }
 
 export default App;

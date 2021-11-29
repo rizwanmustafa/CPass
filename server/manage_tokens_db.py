@@ -14,7 +14,7 @@ def init(database: SQLAlchemy):
 def generate_token(user_token_table, user, ip_address: str, send_mail):
     if db == None:
         print("Please set the variable 'db' first by initializing!")
-        return 
+        return
 
     # Keep generating tokens as long as it is not unique
     gen_token = gen_rand_str(8)
@@ -43,7 +43,7 @@ def generate_token(user_token_table, user, ip_address: str, send_mail):
 def activate_token(user_token_table, token: str, activation_code: str):
     if db == None:
         print("Please set the variable 'db' first by initializing!")
-        return 
+        return
 
     userToken = user_token_table.query.filter_by(
         token=token).all()

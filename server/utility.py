@@ -85,6 +85,7 @@ SERVER_RESPONSE_TYPE = {
     'WARNING': 3,
 }
 
+
 def prep_server_response(type: int, heading: str = None, body: str = None, data: dict = None) -> dict:
     server_response = {"type": type}
 

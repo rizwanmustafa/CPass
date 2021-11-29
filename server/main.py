@@ -2,9 +2,7 @@
 from datetime import datetime, timedelta
 from PasswordGenerator import GeneratePassword
 from typing import List
-from json import dumps as dumpJSON
-
-from flask import Flask, request
+from flask import Flask, request, jsonify as dumpJSON
 from flask_cors import CORS, cross_origin
 from models import get_user_actions_table, db, User, get_user_tokens_table
 from mail import mail, send_mail, send_verification_email
@@ -39,9 +37,10 @@ mail.init_app(app)
 init_token_management(db)
 
 
-@app.route("/")
-def test():
-    return dumpJSON(request.remote_addr)
+@app.route("/", methods=["GET", "POST"])
+def index():
+    print(request.headers["Authorization"])
+    return dumpJSON(f"{request.remote_addr}")
 
 
 @ app.route("/users/", methods=["POST"])
