@@ -1,7 +1,6 @@
 #!/usr/bin/env python3
 from datetime import datetime, timedelta
-from os import sendfile
-from PasswordGenerator import generate_password
+from password_generator import generate_password
 from typing import List
 from flask import Flask, request, jsonify as dumpJSON
 from flask_cors import CORS, cross_origin
@@ -12,7 +11,6 @@ from utility import hash_password, validate_user_data, gen_rand_str
 from utility import prep_response, SERVER_RESPONSE_TYPE
 from utility import compare_passwords
 from manage_tokens_db import generate_token, get_token_status, activate_token, init as init_token_management
-from werkzeug.security import safe_str_cmp
 
 app = Flask(__name__)
 # Update Flask App config
@@ -40,7 +38,7 @@ init_token_management(db)
 
 @app.route("/", methods=["GET", "POST"])
 def index():
-    print(request.headers["Authorization"])
+    print(request.headers.get("Authorization", None))
     return dumpJSON(f"{request.remote_addr}")
 
 
@@ -192,15 +190,17 @@ def manage_tokens():
     data = request.get_json()
     ip_address = request.remote_addr
 
-    if 'username' not in data or 'mode' not in data:
-        return prep_response(SERVER_RESPONSE_TYPE['ERROR'], body="Bad Request!")
+    if 'mode' not in data:
+        return prep_response(SERVER_RESPONSE_TYPE['ERROR'], body="Mode not present in the request!")
+
+    if 'username' not in data:
+        return prep_response(SERVER_RESPONSE_TYPE['ERROR'], body="Username not present in the request!")
 
     # Make sure the user exists and email is verified
-    user: User = User.query.filter_by(
-        username=data['username']).all()
+    user: User = User.query.filter_by(username=data['username']).all()
 
     if not user:
-        return prep_response(SERVER_RESPONSE_TYPE['ERROR'], body="Bad Request!")
+        return prep_response(SERVER_RESPONSE_TYPE['ERROR'], body="!")
 
     user = user[0]
 
@@ -211,47 +211,50 @@ def manage_tokens():
 
     if data['mode'].lower() == "generate":
         if 'password' not in data:
-            return prep_response(SERVER_RESPONSE_TYPE['ERROR'], body="Incomplete Credentials!")
+            return prep_response(SERVER_RESPONSE_TYPE['ERROR'], body="Incorrect credentials!")
 
         # If the password is incorrect, return an error
         hashedPassword = hash_password(data['password'], user.salt)[0]
         if not compare_passwords(hashedPassword, user.password):
             send_failed_login_email(user.username, user.email, ip_address)
-            return prep_response(SERVER_RESPONSE_TYPE['ERROR'], body="Incorrect Credentials!")
+            return prep_response(SERVER_RESPONSE_TYPE['ERROR'], body="Incorrect credentials!")
 
         gen_token = generate_token(
             user_token_table, user, ip_address, send_mail)
 
         # If the token was not created, return error
         if gen_token == "":
-            return prep_response(SERVER_RESPONSE_TYPE['ERROR'], body="Could not log you in! Please try again later!")
-
+            return prep_response(SERVER_RESPONSE_TYPE['ERROR'], body="Could not send a verification email! Please try again later!")
         else:
             return prep_response(SERVER_RESPONSE_TYPE['SUCCESSFUL'], data={'token': gen_token, })
 
     elif data['mode'].lower() == "activate":
 
-        if 'token' not in data or 'activation_code' not in data:
-            return prep_response(SERVER_RESPONSE_TYPE['ERROR'], body="Bad Request!")
+        if 'token' not in data:
+            return prep_response(SERVER_RESPONSE_TYPE['ERROR'], body="Token not present in request!")
+
+        if 'activation_code' not in data:
+            return prep_response(SERVER_RESPONSE_TYPE['ERROR'], body="Activation Code not present in request!")
 
         return activate_token(user_token_table, data['token'], data['activation_code'])
 
     elif data['mode'].lower() == "status":
         if 'token' not in data:
-            return prep_response(SERVER_RESPONSE_TYPE['ERROR'], body="Bad Request!")
+            return prep_response(SERVER_RESPONSE_TYPE['ERROR'], body="Token not present in request!")
 
         userToken: user_token_table = user_token_table.query.filter_by(
             token=data['token']).all()
 
         # If the token does not exist, return error
         if not userToken:
-            return prep_response(SERVER_RESPONSE_TYPE['ERROR'], body="Bad Request!")
+            return prep_response(SERVER_RESPONSE_TYPE['ERROR'], body="Token does not exist!")
 
         userToken = userToken[0]
 
         return get_token_status(userToken)
     else:
-        dumpJSON(prep_response(SERVER_RESPONSE_TYPE['ERROR'], body="Bad Request!"))
+        dumpJSON(prep_response(
+            SERVER_RESPONSE_TYPE['ERROR'], body="Invalid mode in request!"))
 
 
 if __name__ == "__main__":

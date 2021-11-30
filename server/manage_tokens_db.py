@@ -36,6 +36,8 @@ def generate_token(user_token_table, user, ip_address: str, send_mail):
     if sentMail:    # Add the token to the database if email was successfully sent!
         db.session.add(token_item)
         db.session.commit()
+    else:
+        print("Could not send a verification email!")
 
     return gen_token if sentMail else ""
 

@@ -3,14 +3,14 @@ import re
 import hashlib
 from random import randint, choice
 from string import ascii_letters as alphabets
-from werkzeug.security import safe_str_cmp
+from hmac import compare_digest
 
 
-def compare_passwords(a: bytes, b: bytes):
-    return safe_str_cmp(a.decode("utf-8"), b.decode("utf-8"))
+def compare_passwords(a, b):
+    return compare_digest(a, b)
 
 
-def HashPassword(password: str, salt_used: bytes = None):
+def hash_password(password: str, salt_used: bytes = None):
     if salt_used == None:
         salt_used = urandom(32)
 
