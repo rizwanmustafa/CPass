@@ -1,17 +1,18 @@
 #!/usr/bin/env python3
 from datetime import datetime, timedelta
-from PasswordGenerator import GeneratePassword
+from os import sendfile
+from PasswordGenerator import generate_password
 from typing import List
 from flask import Flask, request, jsonify as dumpJSON
 from flask_cors import CORS, cross_origin
 from models import get_user_actions_table, db, User, get_user_tokens_table
-from mail import mail, send_mail, send_verification_email
-
+from mail import mail, send_failed_login_email, send_mail, send_verification_email
 from decouple import config as GetEnvVar
-
-from utility import HashPassword, validate_user_data, gen_rand_str
-from utility import prep_server_response, SERVER_RESPONSE_TYPE
+from utility import hash_password, validate_user_data, gen_rand_str
+from utility import prep_response, SERVER_RESPONSE_TYPE
+from utility import compare_passwords
 from manage_tokens_db import generate_token, get_token_status, activate_token, init as init_token_management
+from werkzeug.security import safe_str_cmp
 
 app = Flask(__name__)
 # Update Flask App config
@@ -59,19 +60,19 @@ def manage_users():
         userDataValid = validate_user_data(username, email, password)
 
         if userDataValid != "":  # Since the data is not valid, send the appropriate correction measure
-            return dumpJSON(prep_server_response(SERVER_RESPONSE_TYPE['ERROR'], body=userDataValid))
+            return dumpJSON(prep_response(SERVER_RESPONSE_TYPE['ERROR'], body=userDataValid))
 
         # Make sure the username or email does not already exist in the database
         usernameExists = User.query.filter_by(username=username).all()
         if usernameExists:
-            return dumpJSON(prep_server_response(SERVER_RESPONSE_TYPE['ERROR'], body="Username is already taken!"))
+            return dumpJSON(prep_response(SERVER_RESPONSE_TYPE['ERROR'], body="Username is already taken!"))
 
         emailExists = User.query.filter_by(email=email).all()
         if emailExists:
-            return dumpJSON(prep_server_response(SERVER_RESPONSE_TYPE['ERROR'], body="Email is already taken!"))
+            return dumpJSON(prep_response(SERVER_RESPONSE_TYPE['ERROR'], body="Email is already taken!"))
 
         # Hash the passoord and get the salt used
-        hashedPassword, salt = HashPassword(password)
+        hashedPassword, salt = hash_password(password)
 
         # Create a user object
         newUser = User(username, email, hashedPassword, salt, False, False)
@@ -82,7 +83,7 @@ def manage_users():
 
         # Send the verification email to the user
         if not send_verification_email(username, randomURL, email):
-            return dumpJSON(prep_server_response(
+            return dumpJSON(prep_response(
                 SERVER_RESPONSE_TYPE['ERROR'],
                 body="User could not be created! Please try again later!"
             ))
@@ -96,7 +97,7 @@ def manage_users():
         db.session.add(newUser)
         db.session.commit()
 
-        return dumpJSON(prep_server_response(
+        return dumpJSON(prep_response(
             SERVER_RESPONSE_TYPE['SUCCESSFUL'],
             body="Account created successfully! Please verify your account by following the directions specified in the email sent to you."
         ))
@@ -179,7 +180,7 @@ def generate_password():
     if incompleteData:
         return dumpJSON("Incomplete password attributes were sent!")
 
-    generated_password = GeneratePassword(
+    generated_password = generate_password(
         length, uppercase, lowercase, numbers, specials)
 
     return dumpJSON(generated_password)
@@ -189,72 +190,68 @@ def generate_password():
 @cross_origin()
 def manage_tokens():
     data = request.get_json()
-    ipAddress = request.remote_addr
+    ip_address = request.remote_addr
 
     if 'username' not in data or 'mode' not in data:
-        return prep_server_response(SERVER_RESPONSE_TYPE['ERROR'], body="Bad Request!")
+        return prep_response(SERVER_RESPONSE_TYPE['ERROR'], body="Bad Request!")
 
     # Make sure the user exists and email is verified
     user: User = User.query.filter_by(
         username=data['username']).all()
 
     if not user:
-        return prep_server_response(SERVER_RESPONSE_TYPE['ERROR'], body="Bad Request!")
+        return prep_response(SERVER_RESPONSE_TYPE['ERROR'], body="Bad Request!")
 
     user = user[0]
 
     if not user.emailVerified:
-        return prep_server_response(SERVER_RESPONSE_TYPE['ERROR'], body="Please verify your email before you log in!")
+        return prep_response(SERVER_RESPONSE_TYPE['ERROR'], body="Please verify your email before you log in!")
 
     user_token_table = get_user_tokens_table(data['username'])
 
     if data['mode'].lower() == "generate":
         if 'password' not in data:
-            return prep_server_response(SERVER_RESPONSE_TYPE['ERROR'], body="Bad Request!")
+            return prep_response(SERVER_RESPONSE_TYPE['ERROR'], body="Incomplete Credentials!")
 
         # If the password is incorrect, return an error
-        hashedPassword, saltUsed = HashPassword(
-            data['password'], user.salt)
-        if hashedPassword != user.password:
-            # Send email that a login attempt to their account was made
-            send_mail(
-                "Login Attempt", f"Hi {user.username},\n\nThere has been a failed login attempt to your account!\n\nIP Address of Login Attempt: {ipAddress}\n\nIf this was not you, we recommend you to make your account secure.", [user.email])
-            return prep_server_response(SERVER_RESPONSE_TYPE['ERROR'], body="Incorrect Password!")
+        hashedPassword = hash_password(data['password'], user.salt)[0]
+        if not compare_passwords(hashedPassword, user.password):
+            send_failed_login_email(user.username, user.email, ip_address)
+            return prep_response(SERVER_RESPONSE_TYPE['ERROR'], body="Incorrect Credentials!")
 
         gen_token = generate_token(
-            user_token_table, user, ipAddress, send_mail)
+            user_token_table, user, ip_address, send_mail)
 
         # If the token was not created, return error
         if gen_token == "":
-            return prep_server_response(SERVER_RESPONSE_TYPE['ERROR'], body="Could not log you in! Please try again later!")
+            return prep_response(SERVER_RESPONSE_TYPE['ERROR'], body="Could not log you in! Please try again later!")
 
         else:
-            return prep_server_response(SERVER_RESPONSE_TYPE['SUCCESSFUL'], data={'token': gen_token, })
+            return prep_response(SERVER_RESPONSE_TYPE['SUCCESSFUL'], data={'token': gen_token, })
 
     elif data['mode'].lower() == "activate":
 
         if 'token' not in data or 'activation_code' not in data:
-            return prep_server_response(SERVER_RESPONSE_TYPE['ERROR'], body="Bad Request!")
+            return prep_response(SERVER_RESPONSE_TYPE['ERROR'], body="Bad Request!")
 
         return activate_token(user_token_table, data['token'], data['activation_code'])
 
     elif data['mode'].lower() == "status":
         if 'token' not in data:
-            return prep_server_response(SERVER_RESPONSE_TYPE['ERROR'], body="Bad Request!")
+            return prep_response(SERVER_RESPONSE_TYPE['ERROR'], body="Bad Request!")
 
         userToken: user_token_table = user_token_table.query.filter_by(
             token=data['token']).all()
 
         # If the token does not exist, return error
         if not userToken:
-            return prep_server_response(SERVER_RESPONSE_TYPE['ERROR'], body="Bad Request!")
+            return prep_response(SERVER_RESPONSE_TYPE['ERROR'], body="Bad Request!")
 
         userToken = userToken[0]
 
         return get_token_status(userToken)
     else:
-        dumpJSON(prep_server_response(
-            SERVER_RESPONSE_TYPE['ERROR'], body="Bad Request!"))
+        dumpJSON(prep_response(SERVER_RESPONSE_TYPE['ERROR'], body="Bad Request!"))
 
 
 if __name__ == "__main__":

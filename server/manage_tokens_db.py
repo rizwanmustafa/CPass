@@ -1,7 +1,7 @@
 from flask_sqlalchemy import SQLAlchemy
 from datetime import datetime, timedelta
 from utility import gen_rand_str
-from utility import prep_server_response, SERVER_RESPONSE_TYPE
+from utility import prep_response, SERVER_RESPONSE_TYPE
 
 db: SQLAlchemy = None
 
@@ -50,12 +50,12 @@ def activate_token(user_token_table, token: str, activation_code: str):
 
     # If the token does not exist or is already activated, send an error
     if not userToken or userToken[0].activated or userToken[0].expiry_date <= datetime.now():
-        return prep_server_response(SERVER_RESPONSE_TYPE['ERROR'], body="Bad Request!")
+        return prep_response(SERVER_RESPONSE_TYPE['ERROR'], body="Bad Request!")
 
     userToken = userToken[0]
 
     if userToken.activation_code != activation_code:
-        return prep_server_response(SERVER_RESPONSE_TYPE['ERROR'], body="Wrong Activation Code!")
+        return prep_response(SERVER_RESPONSE_TYPE['ERROR'], body="Wrong Activation Code!")
 
     else:
         userToken.activated = True
@@ -64,7 +64,7 @@ def activate_token(user_token_table, token: str, activation_code: str):
 
 
 def get_token_status(userToken):
-    return prep_server_response(SERVER_RESPONSE_TYPE['SUCCESSFUL'], data={
+    return prep_response(SERVER_RESPONSE_TYPE['SUCCESSFUL'], data={
         'activated': userToken.activated,
         'expired': userToken.expiry_date <= datetime.now()
     })

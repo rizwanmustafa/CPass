@@ -23,3 +23,9 @@ def send_verification_email(username: str, url: str, recipient: str):
         f"/action?username={username}&url={url}"
     email_body = f"Hi {username},\n\nPlease click the following link to verify your account:\n\n{url}\n\nThanks,\n\nCloud Password Manager"
     return send_mail("Confirm your account", email_body, [recipient])
+
+
+def send_failed_login_email(username: str, email: str,  ip_address: str):
+    send_mail(
+        "Login Attempt",
+        f"Hi {username},\n\nThere has been a failed login attempt to your account!\n\nIP Address of Login Attempt: {ip_address}\n\nIf this was not you, we recommend you to make your account secure.", [email])

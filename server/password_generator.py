@@ -2,7 +2,7 @@ from string import ascii_lowercase, ascii_uppercase, ascii_lowercase, digits, pu
 from secrets import choice, randbelow
 
 
-def GeneratePassword(length: int, uppercase: bool, lowercase: bool, numbers: bool, specials: bool) -> str:
+def generate_password(length: int, uppercase: bool, lowercase: bool, numbers: bool, specials: bool) -> str:
     if uppercase == lowercase == numbers == specials == False:
         return None
 

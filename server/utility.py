@@ -3,6 +3,11 @@ import re
 import hashlib
 from random import randint, choice
 from string import ascii_letters as alphabets
+from werkzeug.security import safe_str_cmp
+
+
+def compare_passwords(a: bytes, b: bytes):
+    return safe_str_cmp(a.decode("utf-8"), b.decode("utf-8"))
 
 
 def HashPassword(password: str, salt_used: bytes = None):
@@ -86,7 +91,7 @@ SERVER_RESPONSE_TYPE = {
 }
 
 
-def prep_server_response(type: int, heading: str = None, body: str = None, data: dict = None) -> dict:
+def prep_response(type: int, heading: str = None, body: str = None, data: dict = None) -> dict:
     server_response = {"type": type}
 
     if heading:

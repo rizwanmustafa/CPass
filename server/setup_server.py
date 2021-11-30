@@ -4,7 +4,7 @@
 import pymysql
 from os import system
 from getpass import getpass
-from PasswordGenerator import GeneratePassword
+from password_generator import generate_password
 
 
 def install_required_packages():
@@ -118,7 +118,7 @@ def configure_mail_settings():
 def manage_general_settings():
     secret_key = public_website_url = None
     if input("Would you like to generate a secret key for the app? [Y / N]: ").lower() != "n":
-        secret_key = GeneratePassword(64, True, True, True, False)
+        secret_key = generate_password(64, True, True, True, False)
 
     public_website_url = input("Input public website url: ")
     exit_if_empty(public_website_url)
