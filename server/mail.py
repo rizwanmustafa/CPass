@@ -47,5 +47,5 @@ def send_jwt_mail(username: str, email: str, token: str, ip_address: str):
 
 def send_failed_login_email(username: str, email: str,  ip_address: str):
     send_mail(
-        "Login Attempt",
+        "Failed Login Attempt",
         f"Hi {username},\n\nThere has been a failed login attempt to your account!\n\nIP Address of Login Attempt: {ip_address}\n\nIf this was not you, we recommend you to make your account secure.", [email])

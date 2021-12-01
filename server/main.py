@@ -4,13 +4,13 @@ from password_generator import generate_password
 from typing import List
 from flask import Flask, request, jsonify as dumpJSON
 from flask_cors import CORS, cross_origin
-from models import get_user_actions_table, db, User, get_user_tokens_table
-from mail import mail, send_failed_login_email, send_mail, send_verification_email
+from models import get_user_actions_table, db, User
+from mail import mail, send_failed_login_email, send_jwt_mail, send_mail, send_verification_email
 from decouple import config as GetEnvVar
 from utility import hash_password, validate_user_data, gen_rand_str
 from utility import prep_response, SERVER_RESPONSE_TYPE
 from utility import compare_passwords
-from manage_tokens_db import generate_token, get_token_status, activate_token, init as init_token_management
+from jwt import encode as jwt_encode, decode as jwt_decode, ExpiredSignatureError
 
 app = Flask(__name__)
 # Update Flask App config
@@ -33,7 +33,6 @@ app.config.update(
 cors = CORS(app)
 db.init_app(app)
 mail.init_app(app)
-init_token_management(db)
 
 
 @app.route("/", methods=["GET", "POST"])
@@ -107,16 +106,17 @@ def username_available():
     username = request.args.get("username")
 
     if username == None:
-        return dumpJSON("Bad request")
+        return prep_response(SERVER_RESPONSE_TYPE["ERROR"], body="Username not provided in arguments!", data={"available": False})
     if len(username) > 50:
-        return dumpJSON(False)
+        return prep_response(SERVER_RESPONSE_TYPE["ERROR"], body="Username cannot be longer than 50 characters!", data={"available": False})
+
     # Get the user by the username
-    user: List[User] = User.query.filter_by(username=username).all()
+    user: User = get_user_by_username(username)
 
-    if len(user) and user[0].username == username:  # The user name is not available
-        return dumpJSON(False)
+    if user == None:
+        return prep_response(SERVER_RESPONSE_TYPE["ERROR"], data={"available": True})
 
-    return dumpJSON(True)
+    return prep_response(SERVER_RESPONSE_TYPE["SUCCESSFUL"], data={"available": False})
 
 
 @ app.route("/action")
@@ -166,7 +166,7 @@ def manage_user_action():
 
 @ app.route("/generatepassword")
 @ cross_origin()
-def generate_password():
+def generate_password_api():
     length = request.args.get('length', default=None, type=int)
     uppercase = request.args.get('uppercase', default=None, type=bool)
     lowercase = request.args.get('lowercase', default=None, type=bool)
@@ -184,77 +184,84 @@ def generate_password():
     return dumpJSON(generated_password)
 
 
-@app.route("/tokens/", methods=["POST"])
-@cross_origin()
-def manage_tokens():
-    data = request.get_json()
-    ip_address = request.remote_addr
+def get_user_by_username(username: str) -> User:
+    user = User.query.filter_by(username=username).all()
 
-    if 'mode' not in data:
-        return prep_response(SERVER_RESPONSE_TYPE['ERROR'], body="Mode not present in the request!")
-
-    if 'username' not in data:
-        return prep_response(SERVER_RESPONSE_TYPE['ERROR'], body="Username not present in the request!")
-
-    # Make sure the user exists and email is verified
-    user: User = User.query.filter_by(username=data['username']).all()
-
-    if not user:
-        return prep_response(SERVER_RESPONSE_TYPE['ERROR'], body="!")
-
-    user = user[0]
-
-    if not user.emailVerified:
-        return prep_response(SERVER_RESPONSE_TYPE['ERROR'], body="Please verify your email before you log in!")
-
-    user_token_table = get_user_tokens_table(data['username'])
-
-    if data['mode'].lower() == "generate":
-        if 'password' not in data:
-            return prep_response(SERVER_RESPONSE_TYPE['ERROR'], body="Incorrect credentials!")
-
-        # If the password is incorrect, return an error
-        hashedPassword = hash_password(data['password'], user.salt)[0]
-        if not compare_passwords(hashedPassword, user.password):
-            send_failed_login_email(user.username, user.email, ip_address)
-            return prep_response(SERVER_RESPONSE_TYPE['ERROR'], body="Incorrect credentials!")
-
-        gen_token = generate_token(
-            user_token_table, user, ip_address, send_mail)
-
-        # If the token was not created, return error
-        if gen_token == "":
-            return prep_response(SERVER_RESPONSE_TYPE['ERROR'], body="Could not send a verification email! Please try again later!")
-        else:
-            return prep_response(SERVER_RESPONSE_TYPE['SUCCESSFUL'], data={'token': gen_token, })
-
-    elif data['mode'].lower() == "activate":
-
-        if 'token' not in data:
-            return prep_response(SERVER_RESPONSE_TYPE['ERROR'], body="Token not present in request!")
-
-        if 'activation_code' not in data:
-            return prep_response(SERVER_RESPONSE_TYPE['ERROR'], body="Activation Code not present in request!")
-
-        return activate_token(user_token_table, data['token'], data['activation_code'])
-
-    elif data['mode'].lower() == "status":
-        if 'token' not in data:
-            return prep_response(SERVER_RESPONSE_TYPE['ERROR'], body="Token not present in request!")
-
-        userToken: user_token_table = user_token_table.query.filter_by(
-            token=data['token']).all()
-
-        # If the token does not exist, return error
-        if not userToken:
-            return prep_response(SERVER_RESPONSE_TYPE['ERROR'], body="Token does not exist!")
-
-        userToken = userToken[0]
-
-        return get_token_status(userToken)
+    if user:
+        return user[0]
     else:
-        dumpJSON(prep_response(
-            SERVER_RESPONSE_TYPE['ERROR'], body="Invalid mode in request!"))
+        return None
+
+
+def create_jwt(username: str, expiration_delay: int) -> str:
+    expiration_time = (datetime.now() + timedelta(seconds=expiration_delay))
+    return jwt_encode({"username": username, "exp": expiration_time.timestamp()}, app.secret_key).decode("utf-8")
+
+
+@app.route("/auth/generate/", methods=["POST"])
+@cross_origin()
+def authenticate_user():
+    data: dict = request.get_json()
+    if data == None or type(data) != dict:
+        return prep_response(SERVER_RESPONSE_TYPE["ERROR"], body="Invalid data sent with request!")
+
+    username = data.get("username", None)
+    password = data.get("password", None)
+
+    if username == None:
+        return prep_response(SERVER_RESPONSE_TYPE["ERROR"], body="Username not present in request body!")
+    if password == None:
+        return prep_response(SERVER_RESPONSE_TYPE["ERROR"], body="Password not present in request body!")
+
+    user = get_user_by_username(username)
+
+    if user == None:
+        return prep_response(SERVER_RESPONSE_TYPE["ERROR"], body="User does not exist")
+
+    if compare_passwords(hash_password(password, user.salt)[0], user.hashed_password):
+        jwt = create_jwt(username, 900)
+        if send_jwt_mail(username, user.email, jwt, request.remote_addr):
+            return prep_response(SERVER_RESPONSE_TYPE["SUCCESSFUL"], body="Your access token has been mailed to you!")
+        else:
+            return prep_response(SERVER_RESPONSE_TYPE["ERROR"], body="Could not mail the access token. Please try again later!")
+    else:
+        send_failed_login_email(username, user.email, request.remote_addr)
+        return prep_response(SERVER_RESPONSE_TYPE["ERROR"], body="Incorrect credentials!")
+
+
+@app.route("/auth/verify/", methods=["POST"])
+@cross_origin()
+def verify_token_api():
+    data = request.get_json()
+    if data == None or type(data) != dict:
+        return prep_response(SERVER_RESPONSE_TYPE["ERROR"], body="Invalid data sent with request!")
+
+    token = data.get("token", None)
+
+    if token == None:
+        return prep_response(SERVER_RESPONSE_TYPE["ERROR"], body="Token not present in request body!")
+
+    try:
+        jwt_decode(token, app.secret_key)
+        return prep_response(SERVER_RESPONSE_TYPE["SUCCESSFUL"])
+    except Exception as e:
+        if e == ExpiredSignatureError:
+            return prep_response(SERVER_RESPONSE_TYPE["ERROR"], body="Expired token")
+
+        # Try to decode and get the username to send a warning email
+        try:
+            username: str = jwt_decode(
+                token, app.secret_key, False).get("username", None)
+        except:
+            return prep_response(SERVER_RESPONSE_TYPE["ERROR"], body="Invalid token!")
+
+        if username == None:
+            # Do something like ban the request source
+            return prep_response(SERVER_RESPONSE_TYPE["ERROR"], body="Invalid token!")
+
+        user: User = get_user_by_username(username)
+        send_failed_login_email(username, user.email, request.remote_addr)
+        return prep_response(SERVER_RESPONSE_TYPE["ERROR"], body="Invalid token!")
 
 
 if __name__ == "__main__":
