@@ -18,7 +18,7 @@ import Typography from "@material-ui/core/Typography";
 
 interface Props {
     setUsername: React.Dispatch<React.SetStateAction<string>>;
-    setUserToken: React.Dispatch<React.SetStateAction<string>>;
+    setMailedToken: React.Dispatch<React.SetStateAction<boolean>>;
 }
 
 const SigninForm = (props: Props): JSX.Element => {
@@ -54,18 +54,18 @@ const SigninForm = (props: Props): JSX.Element => {
         }
 
         try {
-            const fetchToken = await axios.post("http://localhost:5000/tokens/", {
-                mode: 'generate',
+            // Change this later
+            const request = await axios.post("http://localhost:5000/auth/generate/", {
                 username: userData.username,
                 password: userData.password,
             })
 
-            const response = await fetchToken.data;
+            const response = await request.data;
 
-            if (response.type === ServerResponseType.Error) setServerResponse(response)
-            else {
+            setServerResponse(response)
+            if (response.type === ServerResponseType.Successful){
                 props.setUsername(userData.username);
-                props.setUserToken(response.data.token);
+                props.setMailedToken(true);
             }
         }
         catch (e) {

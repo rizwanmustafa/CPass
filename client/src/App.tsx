@@ -1,9 +1,6 @@
 import { useState, useEffect } from "react";
 import { Switch, Route, useHistory } from "react-router-dom";
 
-// Import interfaces
-import { ITokenStatus } from "./types";
-
 // Import necessary components
 import SignupForm from "./components/SignupForm";
 import SigninForm from "./components/SigninForm";
@@ -13,38 +10,35 @@ const App = (): JSX.Element => {
     const history = useHistory();
 
     const [username, setUsername] = useState<string>("");
-    const [userToken, setUserToken] = useState<string>("");
-    const [tokenStatus, setTokenStatus] = useState<ITokenStatus>({
-        activated: false,
-        expired: false,
-    })
+
+    const [token, setToken] = useState<string>("");
+    const [mailedToken, setMailedToken] = useState<boolean>(false);
+    const [tokenExpired, setTokenExpired] = useState<boolean>(false);
 
     useEffect(() => {
         // Whenever the state regarding token changes, we need to redirect the user to its appropriate place
-        if (userToken === "") history.push("/signin")
+        if (token !== "") history.push("/")
 
-        else if (tokenStatus.expired) {
-            setUserToken("");
-            setTokenStatus({
-                activated: false,
-                expired: false,
-            })
+        else if (mailedToken === false) history.push("/signin")
+
+        else if (tokenExpired) {
+            setMailedToken(false);
+            setTokenExpired(false);
         }
 
-        else if (!tokenStatus.activated) {
+        else if (mailedToken) {
             history.push("/verify")
         }
 
-        else history.push("/")
+    }, [token, mailedToken, tokenExpired, history])
 
-    }, [userToken, tokenStatus])
 
     return (
         <Switch>
             <Route path="/signin" exact>
                 <SigninForm
                     setUsername={setUsername}
-                    setUserToken={setUserToken}
+                    setMailedToken={setMailedToken}
                 />
             </Route>
 
@@ -55,9 +49,7 @@ const App = (): JSX.Element => {
             <Route path="/verify" exact>
                 <VerifyLogin
                     username={username}
-                    token={userToken}
-                    tokenStatus={tokenStatus}
-                    setTokenStatus={setTokenStatus}
+                    setToken={setToken}
                 />
             </Route>
         </Switch>

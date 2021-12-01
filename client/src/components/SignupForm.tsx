@@ -81,7 +81,6 @@ const SignupForm = (): JSX.Element => {
 
     const HandleInput = (e: React.ChangeEvent<HTMLInputElement>) => {
         // This method deals with changes in the value of Input Elements for forms
-        console.log(e);
 
         ToggleEmptyValueWarning(e)
 
@@ -98,9 +97,11 @@ const SignupForm = (): JSX.Element => {
     const CheckUsernameAvailibility = async (username: string): Promise<boolean> => {
         // This method sends a request to an API by server to check if the current username is available
         try {
-            const fetchData = await axios.get(`http://localhost:5000/usernameavailable?username=${username}`);
+            const request = await axios.get(`http://localhost:5000/usernameavailable?username=${username}`);
 
-            return fetchData.data;
+            if (request.data.data && request.data.data.available !== undefined)
+                return request.data.data.available;
+            else return false;
         }
         catch (error) {
             console.error("Could not check if the username is available!", error);

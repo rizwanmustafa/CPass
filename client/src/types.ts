@@ -23,8 +23,3 @@ export interface IUserData {
     email: string;
     password: string;
 }
-
-export interface ITokenStatus {
-    activated: boolean | null;
-    expired: boolean | null;
-}

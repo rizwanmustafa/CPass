@@ -3,7 +3,7 @@ import axios from "axios";
 import clsx from "clsx";
 
 // Import interfaces
-import { IServerResponse, ITokenStatus, ServerResponseType } from "../types";
+import { IServerResponse, ServerResponseType } from "../types";
 
 // Import necessary styles
 import FormStyles from "../styles/FormStyles";
@@ -16,65 +16,33 @@ import CircularProgress from "@material-ui/core/CircularProgress";
 
 interface Props {
     username: string;
-    token: string;
-    tokenStatus: ITokenStatus;
-    setTokenStatus: React.Dispatch<React.SetStateAction<ITokenStatus>>;
+    setToken: React.Dispatch<React.SetStateAction<string>>;
 }
 
 const VerifyLogin = (props: Props): JSX.Element => {
     const formClasses = FormStyles();
 
-    const [verificationCode, setVerificationCode] = useState<string>("");
-    const [wrongCode, setWrongCode] = useState<boolean>(false);
-
+    const [token, setToken] = useState<string>("");
     const [requestInProcess, setRequestInProcess] = useState<boolean>(false);
     const [serverResponse, setServerResponse] = useState<IServerResponse>({});
+
     const VerifyToken = async () => {
         setRequestInProcess(true);
-        if (verificationCode.trim() === "") {
-            setServerResponse({
-                type: 2,
-                body: "Verification code cannot be empty or whitespace!"
-            })
-            setRequestInProcess(false);
-            return
+
+        const request = await axios.post("http://localhost:5000/auth/verify/", {
+            token: token
+        })
+
+        const response = await request.data;
+
+        if (response.type === ServerResponseType.Error) setServerResponse(response)
+        else if (response.type === ServerResponseType.Successful) {
+            props.setToken(token)
         }
 
-        try {
-            // First verify, then update the token status
-            const verificationRequest = await axios.post("http://localhost:5000/tokens/", {
-                mode: 'activate',
-                username: props.username,
-                token: props.token,
-                activation_code: verificationCode,
-            });
+        setRequestInProcess(false);
 
-            const response = verificationRequest.data;
-
-            if (response.type === ServerResponseType.Error) {
-                // Update the status of token by running another fetch
-                const tokenStatus = await axios.post("http://localhost:5000/tokens/", {
-                    mode: 'status',
-                    username: props.username,
-                    token: props.token
-                })
-
-                const tokenResponse = tokenStatus.data;
-
-                setServerResponse(response);
-                props.setTokenStatus(tokenResponse.data);
-            }
-            else props.setTokenStatus(response.data);
-
-        }
-        catch (e) {
-            console.error("Could not verify user!", e)
-        }
-        finally {
-            setRequestInProcess(false)
-        }
     }
-
 
     return (
         <form className={formClasses.form}>
@@ -87,13 +55,11 @@ const VerifyLogin = (props: Props): JSX.Element => {
             <TextField
                 variant="outlined"
                 required
-                label="Verification Code"
+                label="Token"
                 type="text"
-                id="verificationCode"
-                onChange={e => setVerificationCode(e.target.value)}
-                error={wrongCode}
-                helperText={wrongCode && "Please input the correct verification code!"}
-                value={verificationCode}
+                id="token"
+                onChange={e => setToken(e.target.value)}
+                value={token}
             />
 
 
