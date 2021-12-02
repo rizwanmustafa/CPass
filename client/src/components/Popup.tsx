@@ -1,4 +1,4 @@
-import { useRef } from "react";
+import { useEffect, useRef } from "react";
 import { IServerResponse } from "../types";
 import Button from "@material-ui/core/Button";
 import Typography from "@material-ui/core/Typography";
@@ -32,7 +32,9 @@ const Popup = (props: Props): JSX.Element => {
         }
     }
 
-    setTimeout(() => togglePopupOpacity())
+    useEffect(() => {
+        setTimeout(() => togglePopupOpacity())
+    }, [])
 
     return (
         <div style={{
