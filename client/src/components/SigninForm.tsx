@@ -16,6 +16,8 @@ import TextField from "@material-ui/core/TextField";
 import CircularProgress from "@material-ui/core/CircularProgress";
 import Typography from "@material-ui/core/Typography";
 
+import Popup from "./Popup";
+
 interface Props {
     setUsername: React.Dispatch<React.SetStateAction<string>>;
     setMailedToken: React.Dispatch<React.SetStateAction<boolean>>;
@@ -62,11 +64,11 @@ const SigninForm = (props: Props): JSX.Element => {
 
             const response = await request.data;
 
-            setServerResponse(response)
-            if (response.type === ServerResponseType.Successful){
+            if (response.type === ServerResponseType.Successful) {
                 props.setUsername(userData.username);
                 props.setMailedToken(true);
             }
+            else setServerResponse(response)
         }
         catch (e) {
             console.error("Could not signin user!", e)
@@ -151,14 +153,7 @@ const SigninForm = (props: Props): JSX.Element => {
 
             {
                 serverResponse.body === undefined ||
-                <Typography variant="body1" className={clsx({
-                    [formClasses.helperText]: true,
-                    [formClasses.successful]: serverResponse.type === ServerResponseType.Successful,
-                    [formClasses.error]: serverResponse.type === ServerResponseType.Error,
-                    [formClasses.warning]: serverResponse.type === ServerResponseType.Warning
-                })}>
-                    {serverResponse.body}
-                </Typography>
+                <Popup borderRadius={10} serverResponse={serverResponse} setServerRespose={setServerResponse} />
             }
 
             <Typography variant="body1" onClick={RedirectToSignUpPage} className={clsx({
