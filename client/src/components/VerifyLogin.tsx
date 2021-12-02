@@ -84,7 +84,7 @@ const VerifyLogin = (props: Props): JSX.Element => {
 
             {
                 serverResponse.body === undefined ||
-                <Popup borderRadius={10} serverResponse={serverResponse} setServerRespose={setServerResponse} />
+                <Popup borderRadius={10} serverResponse={serverResponse} setServerResponse={setServerResponse} />
             }
 
         </form>

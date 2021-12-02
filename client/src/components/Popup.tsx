@@ -12,7 +12,7 @@ import WarningIcon from '@material-ui/icons/Warning';
 interface Props {
     borderRadius: number;
     serverResponse: IServerResponse;
-    setServerRespose: React.Dispatch<React.SetStateAction<IServerResponse>>;
+    setServerResponse: React.Dispatch<React.SetStateAction<IServerResponse>>;
 }
 
 const Popup = (props: Props): JSX.Element => {
@@ -84,7 +84,7 @@ const Popup = (props: Props): JSX.Element => {
                     }}
                     onClick={() => {
                         togglePopupOpacity()
-                        setTimeout(() => props.setServerRespose({}), 500)
+                        setTimeout(() => props.setServerResponse({}), 500)
                     }}
                 >OK</Button>
             </div>

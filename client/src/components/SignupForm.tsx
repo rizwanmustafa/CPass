@@ -15,6 +15,8 @@ import clsx from "clsx";
 import { IServerResponse, ServerResponseType, IUserData } from "../types";
 import { isAlphaNumeric, hasAlphaNumeric, isValidEmail } from "../scripts/DataValidation";
 
+import Popup from "./Popup";
+
 const SignupForm = (): JSX.Element => {
     const textboxStyles: React.CSSProperties = {
         paddingBottom: 15
@@ -237,14 +239,7 @@ const SignupForm = (): JSX.Element => {
 
             {
                 serverResponse.body === undefined ||
-                <Typography variant="body1" className={clsx({
-                    [formClasses.helperText]: true,
-                    [formClasses.successful]: serverResponse.type === ServerResponseType.Successful,
-                    [formClasses.error]: serverResponse.type === ServerResponseType.Error,
-                    [formClasses.warning]: serverResponse.type === ServerResponseType.Warning
-                })}>
-                    {serverResponse.body}
-                </Typography>
+                <Popup borderRadius={10} serverResponse={serverResponse} setServerResponse={setServerResponse} />
             }
 
             <Typography variant="body1" onClick={RedirectToSignInPage} className={clsx({
