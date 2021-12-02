@@ -1,8 +1,13 @@
-import { useLayoutEffect, useRef } from "react";
+import { useRef } from "react";
 import { IServerResponse } from "../types";
-import CheckCircleIcon from "@material-ui/icons/CheckCircle";
 import Button from "@material-ui/core/Button";
 import Typography from "@material-ui/core/Typography";
+import { ServerResponseType } from "../types";
+
+// Icons according to ServerResponseType
+import CheckCircleIcon from "@material-ui/icons/CheckCircle";
+import CancelIcon from '@material-ui/icons/Cancel';
+import WarningIcon from '@material-ui/icons/Warning';
 
 interface Props {
     borderRadius: number;
@@ -11,7 +16,7 @@ interface Props {
 }
 
 const Popup = (props: Props): JSX.Element => {
-    const successColor = "#00963f";
+    const mainColor = props.serverResponse.type === ServerResponseType.Successful ? "#00963f" : props.serverResponse.type === ServerResponseType.Error ? "#e21e2c" : "#eeb001";
 
     const popupDiv = useRef<HTMLDivElement>(null);
 
@@ -60,11 +65,18 @@ const Popup = (props: Props): JSX.Element => {
                 opacity: 0,
                 transition: "opacity 0.5s ease-in-out",
             }}>
-                <CheckCircleIcon htmlColor={successColor} style={{ fontSize: 100, }} />
-                <Typography style={{ color: successColor, paddingTop: 10, paddingBottom: 20 }}>{props.serverResponse.body}</Typography>
+                {
+                    props.serverResponse.type === ServerResponseType.Successful ?
+                        <CheckCircleIcon htmlColor={mainColor} style={{ fontSize: 100, }} /> :
+                        props.serverResponse.type === ServerResponseType.Error ?
+                            <CancelIcon htmlColor={mainColor} style={{ fontSize: 100, }} /> :
+                            <WarningIcon htmlColor={mainColor} style={{ fontSize: 100, }} />
+
+                }
+                <Typography style={{ color: mainColor, paddingTop: 10, paddingBottom: 20 }}>{props.serverResponse.body}</Typography>
                 <Button
                     style={{
-                        backgroundColor: successColor,
+                        backgroundColor: mainColor,
                         color: "white",
                         minWidth: "25%"
                     }}
