@@ -244,10 +244,9 @@ def verify_token_api():
     try:
         jwt_decode(token, app.secret_key)
         return prep_response(SERVER_RESPONSE_TYPE["SUCCESSFUL"])
-    except Exception as e:
-        if e == ExpiredSignatureError:
-            return prep_response(SERVER_RESPONSE_TYPE["ERROR"], body="Expired token")
-
+    except ExpiredSignatureError:
+        return prep_response(SERVER_RESPONSE_TYPE["ERROR"], body="Expired token")
+    except:
         # Try to decode and get the username to send a warning email
         try:
             username: str = jwt_decode(
