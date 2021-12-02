@@ -3,6 +3,7 @@ import { makeStyles, createStyles, Theme } from "@material-ui/core";
 const FormStyles = makeStyles((theme: Theme) => // This stores the classes used for styling the components
     createStyles({
         form: {
+            position: "relative",
             display: "flex",
             flexDirection: "column",
             width: "50vw",

@@ -13,6 +13,7 @@ import Typography from "@material-ui/core/Typography";
 import TextField from "@material-ui/core/TextField";
 import Button from "@material-ui/core/Button";
 import CircularProgress from "@material-ui/core/CircularProgress";
+import Popup from "./Popup";
 
 interface Props {
     username: string;
@@ -60,6 +61,7 @@ const VerifyLogin = (props: Props): JSX.Element => {
                 id="token"
                 onChange={e => setToken(e.target.value)}
                 value={token}
+                autoComplete="off"
             />
 
 
@@ -82,14 +84,17 @@ const VerifyLogin = (props: Props): JSX.Element => {
 
             {
                 serverResponse.body === undefined ||
-                <Typography variant="body1" className={clsx({
-                    [formClasses.helperText]: true,
-                    [formClasses.successful]: serverResponse.type === ServerResponseType.Successful,
-                    [formClasses.error]: serverResponse.type === ServerResponseType.Error,
-                    [formClasses.warning]: serverResponse.type === ServerResponseType.Warning
-                })}>
-                    {serverResponse.body}
-                </Typography>
+                <>
+                    <Typography variant="body1" className={clsx({
+                        [formClasses.helperText]: true,
+                        [formClasses.successful]: serverResponse.type === ServerResponseType.Successful,
+                        [formClasses.error]: serverResponse.type === ServerResponseType.Error,
+                        [formClasses.warning]: serverResponse.type === ServerResponseType.Warning
+                    })}>
+                        {serverResponse.body}
+                    </Typography>
+                    <Popup borderRadius={10} serverResponse={serverResponse} setServerRespose={setServerResponse} />
+                </>
             }
 
         </form>
