@@ -92,7 +92,7 @@ SERVER_RESPONSE_TYPE = {
 
 
 def prep_response(type: int, heading: str = None, body: str = None, data: dict = None) -> dict:
-    server_response = {"type": type}
+    server_response : dict = {"type": type}
 
     if heading:
         server_response["heading"] = heading
