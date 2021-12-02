@@ -84,17 +84,7 @@ const VerifyLogin = (props: Props): JSX.Element => {
 
             {
                 serverResponse.body === undefined ||
-                <>
-                    <Typography variant="body1" className={clsx({
-                        [formClasses.helperText]: true,
-                        [formClasses.successful]: serverResponse.type === ServerResponseType.Successful,
-                        [formClasses.error]: serverResponse.type === ServerResponseType.Error,
-                        [formClasses.warning]: serverResponse.type === ServerResponseType.Warning
-                    })}>
-                        {serverResponse.body}
-                    </Typography>
-                    <Popup borderRadius={10} serverResponse={serverResponse} setServerRespose={setServerResponse} />
-                </>
+                <Popup borderRadius={10} serverResponse={serverResponse} setServerRespose={setServerResponse} />
             }
 
         </form>
