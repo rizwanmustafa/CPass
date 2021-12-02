@@ -71,11 +71,11 @@ const SigninForm = (props: Props): JSX.Element => {
             else setServerResponse(response)
         }
         catch (e) {
-            console.error("Could not signin user!", e)
+            console.error("Could not sign in user!", e)
+            setServerResponse({ type: ServerResponseType.Error, body: "Could not connect to server!", })
         }
-        finally {
-            setRequestInProcess(false);
-        }
+
+        setRequestInProcess(false);
     }
 
     const HandleInput = (e: React.ChangeEvent<HTMLInputElement>) => {

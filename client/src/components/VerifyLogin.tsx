@@ -30,16 +30,22 @@ const VerifyLogin = (props: Props): JSX.Element => {
     const VerifyToken = async () => {
         setRequestInProcess(true);
 
-        const request = await axios.post("http://localhost:5000/auth/verify/", {
-            token: token
-        })
+        try {
+            const request = await axios.post("http://localhost:5000/auth/verify/", {
+                token: token
+            })
 
-        const response = await request.data;
+            const response = await request.data;
 
-        if (response.type === ServerResponseType.Successful) {
-            props.setToken(token)
+            if (response.type === ServerResponseType.Successful) {
+                props.setToken(token)
+            }
+            else setServerResponse(response)
         }
-        else setServerResponse(response)
+        catch (e) {
+            console.error("Could not verify token!", e)
+            setServerResponse({ type: ServerResponseType.Error, body: "Could not connect to server!", })
+        }
 
         setRequestInProcess(false);
 

@@ -76,9 +76,8 @@ const SignupForm = (): JSX.Element => {
             console.error("Could not create user!", e)
             setServerResponse({ type: ServerResponseType.Error, body: "Could not connect to server!", })
         }
-        finally {
-            setRequestInProcess(false);
-        }
+
+        setRequestInProcess(false);
     }
 
     const HandleInput = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -103,12 +102,13 @@ const SignupForm = (): JSX.Element => {
 
             if (request.data.data && request.data.data.available !== undefined)
                 return request.data.data.available;
+
             else return false;
         }
         catch (error) {
             console.error("Could not check if the username is available!", error);
 
-            return false;
+            return true;
         }
     }
 
