@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import axios from "axios";
 import clsx from "clsx";
 
@@ -36,10 +36,10 @@ const VerifyLogin = (props: Props): JSX.Element => {
 
         const response = await request.data;
 
-        if (response.type === ServerResponseType.Error) setServerResponse(response)
-        else if (response.type === ServerResponseType.Successful) {
+        if (response.type === ServerResponseType.Successful) {
             props.setToken(token)
         }
+        else setServerResponse(response)
 
         setRequestInProcess(false);
 
