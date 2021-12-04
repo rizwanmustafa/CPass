@@ -91,8 +91,8 @@ SERVER_RESPONSE_TYPE = {
 }
 
 
-def prep_response(type: int, heading: str = None, body: str = None, data: dict = None) -> dict:
-    server_response : dict = {"type": type}
+def prep_response(type: str, heading: str = None, body: str = None, data: dict = None) -> dict:
+    server_response: dict = {"type": SERVER_RESPONSE_TYPE.get(type.upper(), 1)}
 
     if heading:
         server_response["heading"] = heading
