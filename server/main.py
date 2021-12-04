@@ -78,11 +78,11 @@ def manage_users():
         newUser = User(username, email, hashedPassword, salt, False)
 
         # Generate a random url and set the expirty time for them to verify their account
-        randomURL = gen_rand_str(8)
+        random_code = gen_rand_str(8)
         expiry_time = datetime.now() + timedelta(hours=1)
 
         # Send the verification email to the user
-        if not send_verification_email(username, randomURL, email):
+        if not send_verification_email(username, random_code, email):
             return dumpJSON(prep_response(
                 'ERROR',
                 body="User could not be created! Please try again later!"
@@ -90,7 +90,7 @@ def manage_users():
 
         # Get the user action table and create a new action
         userActionTable = get_user_actions_table(username)
-        userAction = userActionTable(randomURL, 1, expiry_time)
+        userAction = userActionTable(random_code, 1, expiry_time)
 
         # Add the user object and action object to the database and commit the changes
         db.session.add(userAction)
@@ -126,33 +126,35 @@ def username_available():
 @ cross_origin()
 def manage_user_action():
     username = request.args.get('username')
-    url = request.args.get('url')
+    code = request.args.get('code')
 
-    if username == None or url == None:
-        return dumpJSON("Bad Request")
+    if username == None:
+        return dumpJSON("Username not provided in arguments!")
+    if code == None:
+        return dumpJSON("URL not provided in arguments!")
 
     # Check URL length
-    if len(url) != 8:
-        return dumpJSON("Bad Request")  # Invalid URL
+    if len(code) != 8:
+        return dumpJSON("Invalid code!")  # Invalid Code
 
     # Check if user exists.
-    user: List[User] = User.query.filter_by(username=username).all()
-    if len(user) == 0:
-        return dumpJSON("Bad Request")  # User does not exist
+    user: User = get_user_by_username(username)
+    if user == None:
+        return dumpJSON("User does not exist!")  # User does not exist
 
     # Check if the URL exists
     userActionTable = get_user_actions_table(username)
     userAction: List[userActionTable] = userActionTable.query.filter_by(
-        url=url).all()
+        code=code).all()
 
     if len(userAction) == 0:
-        return dumpJSON("Bad Request")  # URL does not exist
+        return dumpJSON("Invalid code!")  # Code does not exist
 
     actionID = userAction[0].id
 
     if actionID == 1:
         # The account is verified
-        user[0].email_verified = True
+        user.email_verified = True
         userAction[0].expiry_date = datetime.now()  # Expire the link
         db.session.commit()
 
@@ -162,9 +164,6 @@ def manage_user_action():
         }
 
         return dumpJSON(message)
-
-    else:
-        return dumpJSON("Some problem occurred! Please try again later!")
 
 
 @ app.route("/generatepassword")

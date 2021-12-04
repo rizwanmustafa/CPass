@@ -30,13 +30,13 @@ def get_user_actions_table(username: str):
             'extend_existing': True,
         }
 
-        url = db.Column(db.String(8), nullable=False, primary_key=True)
+        code = db.Column(db.String(8), nullable=False, primary_key=True)
         id = db.Column(db.Integer, nullable=False)
         expiry_date = db.Column(db.DateTime, nullable=False)
         additional_data = db.Column(db.String(255), nullable=False)
 
-        def __init__(self, url: str, id: int, expiry_date: datetime, additional_data: str = ""):
-            self.url = url
+        def __init__(self, code: str, id: int, expiry_date: datetime, additional_data: str = ""):
+            self.code = code
             self.id = id
             self.expiry_date = expiry_date
             self.additional_data = additional_data
