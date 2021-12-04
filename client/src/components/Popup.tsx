@@ -75,7 +75,7 @@ const Popup = (props: Props): JSX.Element => {
                             <WarningIcon htmlColor={mainColor} style={{ fontSize: 100, }} />
 
                 }
-                <Typography style={{ color: mainColor, paddingTop: 10, paddingBottom: 20 }}>{props.serverResponse.body}</Typography>
+                <Typography style={{ color: mainColor, paddingTop: 10, paddingBottom: 20, textAlign: "center" }}>{props.serverResponse.body}</Typography>
                 <Button
                     style={{
                         backgroundColor: mainColor,
