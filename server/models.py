@@ -13,7 +13,7 @@ class User(db.Model):
     salt = db.Column(db.LargeBinary, nullable=False)
     email_verified = db.Column(db.Boolean, nullable=False)
 
-    def __init__(self, username : str, email: str, hashed_password : bytes, salt:bytes, email_verified: bool):
+    def __init__(self, username: str, email: str, hashed_password: bytes, salt: bytes, email_verified: bool):
         self.username = username
         self.email = email
         self.hashed_password = hashed_password
@@ -44,3 +44,32 @@ def get_user_actions_table(username: str):
     # Create the table
     db.create_all()
     return ActionTable
+
+
+def get_user_credentials_table(real_username: str):
+    # This table stores the encrypted credentials of the user
+    class Credentials_Table(db.Model):
+        __tablename__ = f'userCredentials${real_username}'
+        __table_args__ = {
+            # This is so that we can get this table again even though it is already defined
+            'extend_existing': True,
+        }
+
+        id = db.Column(db.Integer, nullable=False, primary_key=True)
+        title = db.Column(db.LargeBinary, nullable=False)
+        username = db.Column(db.LargeBinary, nullable=False)
+        email = db.Column(db.LargeBinary, nullable=False)
+        password = db.Column(db.LargeBinary, nullable=False)
+        salt = db.Column(db.LargeBinary, nullable=False)
+
+        def __init__(self, id: int, title: bytes, username: bytes, email: bytes, password: bytes, salt: bytes):
+            self.id = id
+            self.title = title
+            self.username = username
+            self.email = email
+            self.password = password
+            self.salt = salt
+
+    # Create the table
+    db.create_all()
+    return Credentials_Table
