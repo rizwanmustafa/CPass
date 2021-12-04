@@ -2,9 +2,9 @@ import { useState, useEffect } from "react";
 import { Switch, Route, useHistory } from "react-router-dom";
 
 // Import necessary components
-import SignupForm from "./components/SignupForm";
-import SigninForm from "./components/SigninForm";
-import VerifyLogin from "./components/VerifyLogin";
+import SignupForm from "./components/forms/Signup";
+import SigninForm from "./components/forms/Signin";
+import VerifyLogin from "./components/forms/VerifyLogin";
 
 const App = (): JSX.Element => {
     const history = useHistory();

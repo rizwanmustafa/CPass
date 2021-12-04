@@ -9,13 +9,13 @@ import CircularProgress from "@material-ui/core/CircularProgress";
 import Typography from "@material-ui/core/Typography";
 
 // Import styles
-import FormStyles from "../styles/FormStyles";
+import FormStyles from "../../styles/FormStyles";
 
 import clsx from "clsx";
-import { IServerResponse, ServerResponseType, IUserData } from "../types";
-import { isAlphaNumeric, hasAlphaNumeric, isValidEmail } from "../scripts/DataValidation";
+import { IServerResponse, ServerResponseType, IUserData } from "../../types";
+import { isAlphaNumeric, hasAlphaNumeric, isValidEmail } from "../../scripts/DataValidation";
 
-import Popup from "./Popup";
+import Popup from "../Popup";
 
 const SignupForm = (): JSX.Element => {
     const textboxStyles: React.CSSProperties = {

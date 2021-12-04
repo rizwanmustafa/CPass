@@ -3,9 +3,9 @@ import { useHistory } from "react-router-dom";
 import axios from "axios";
 
 // Import interfaces
-import { IUserData, IServerResponse, ServerResponseType } from "../types";
+import { IUserData, IServerResponse, ServerResponseType } from "../../types";
 // Import styles
-import FormStyles from "../styles/FormStyles";
+import FormStyles from "../../styles/FormStyles";
 
 // Import clsx for conditional rendering
 import clsx from "clsx";
@@ -16,7 +16,7 @@ import TextField from "@material-ui/core/TextField";
 import CircularProgress from "@material-ui/core/CircularProgress";
 import Typography from "@material-ui/core/Typography";
 
-import Popup from "./Popup";
+import Popup from "../Popup";
 
 interface Props {
     setUsername: React.Dispatch<React.SetStateAction<string>>;
