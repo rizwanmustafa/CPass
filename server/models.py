@@ -11,16 +11,14 @@ class User(db.Model):
     email = db.Column(db.String(50), nullable=False, unique=True)
     hashed_password = db.Column(db.LargeBinary, nullable=False)
     salt = db.Column(db.LargeBinary, nullable=False)
-    emailVerified = db.Column(db.Boolean, nullable=False)
-    twoFactorAuthEnabled = db.Column(db.Boolean, nullable=False)
+    email_verified = db.Column(db.Boolean, nullable=False)
 
-    def __init__(self, username, email, hashed_password, salt, emailVerified, twoFactorAuthEnabled):
+    def __init__(self, username : str, email: str, hashed_password : bytes, salt:bytes, email_verified: bool):
         self.username = username
         self.email = email
         self.hashed_password = hashed_password
         self.salt = salt
-        self.emailVerified = emailVerified
-        self.twoFactorAuthEnabled = twoFactorAuthEnabled
+        self.email_verified = email_verified
 
 
 def get_user_actions_table(username: str):

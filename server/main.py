@@ -72,7 +72,7 @@ def manage_users():
         hashedPassword, salt = hash_password(password)
 
         # Create a user object
-        newUser = User(username, email, hashedPassword, salt, False, False)
+        newUser = User(username, email, hashedPassword, salt, False)
 
         # Generate a random url and set the expirty time for them to verify their account
         randomURL = gen_rand_str(8)
@@ -149,7 +149,7 @@ def manage_user_action():
 
     if actionID == 1:
         # The account is verified
-        user[0].emailVerified = True
+        user[0].email_verified = True
         userAction[0].expiry_date = datetime.now()  # Expire the link
         db.session.commit()
 
