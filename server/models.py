@@ -62,8 +62,7 @@ def get_user_credentials_table(real_username: str):
         password = db.Column(db.LargeBinary, nullable=False)
         salt = db.Column(db.LargeBinary, nullable=False)
 
-        def __init__(self, id: int, title: bytes, username: bytes, email: bytes, password: bytes, salt: bytes):
-            self.id = id
+        def __init__(self, title: bytes, username: bytes, email: bytes, password: bytes, salt: bytes):
             self.title = title
             self.username = username
             self.email = email
