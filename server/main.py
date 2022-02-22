@@ -285,7 +285,7 @@ def verify_token_api():
 
 ############### Managing credentials of Users ###############
 
-@ app.route("/credentials/", methods=["POST"])
+@ app.route("/credentials", methods=["POST", "GET"])
 @ cross_origin()
 def manage_credentials():
     user_token: str = request.headers.get("Authorization", None)
@@ -305,7 +305,7 @@ def manage_credentials():
 
     # TODO: Notify the user by mailing them of a failed login attempt
     if user_token_info.get("authentic", False) == False:
-        return prep_response("ERROR", body="Non-verified JWT!")
+        return prep_response("ERROR", body="Forged JWT!")
 
     if user_token_info.get("expired", True) == True:
         return prep_response("ERROR", body="Expired JWT!")
@@ -357,6 +357,8 @@ def manage_credentials():
         db.session.commit()
         return prep_response("SUCCESSFUL", body="Credential successfully added!")
 
+    elif request.method == "GET":
+        pass
     pass
 
 
