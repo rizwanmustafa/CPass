@@ -1,7 +1,0 @@
-flask
-flask_sqlalchemy
-flask_cors
-flask_mail
-python-decouple
-pymysql
-pyjwt

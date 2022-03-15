@@ -1,9 +1,16 @@
 {
-  "name": "CloudPasswordManager",
+  "name": "cloudpasswordmanager",
   "version": "1.0.0",
   "repository": "git@github.com:rizwanmustafa/CloudPasswordManager.git",
   "author": "Rizwan Mustafa <rizwanmustafa0000@gmail.com>",
   "license": "GPL-3.0",
   "private": true,
-  "packageManager": "yarn@3.2.0"
+  "packageManager": "yarn@3.2.0",
+  "scripts": {
+    "start": "concurrently \"cd frontend && yarn start\" \"cd backend && yarn start\""
+  },
+  "devDependencies": {
+    "concurrently": "^7.0.0",
+    "typescript": "^4.6.2"
+  }
 }
