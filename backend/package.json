@@ -10,6 +10,7 @@
   "dependencies": {
     "@types/morgan": "^1.9.3",
     "express": "^4.17.3",
+    "joi": "^17.6.0",
     "morgan": "^1.10.0"
   },
   "devDependencies": {
