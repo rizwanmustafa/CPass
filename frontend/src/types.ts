@@ -12,10 +12,8 @@ export enum ServerResponseType {
 }
 
 export interface IServerResponse {
-    type?: ServerResponseType;
-    heading?: string;
-    body?: string;
-    data?: string;
+    message: string
+    data?: object;
 }
 
 export interface IUserData {

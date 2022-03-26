@@ -7,7 +7,7 @@ export const usernameSchema = joi.string()
   .required()
   .messages({
     "string.pattern.base":
-      "Username invalid. A username can only contain alphanumeric characters",
+      "Invalid Username. A username can only contain alphanumeric characters",
     "string.max": "Username exceeds maximum of 16 characters",
   });
 
@@ -18,7 +18,7 @@ export const emailSchema = joi.string()
   .max(320)
   .required()
   .messages({
-    "string.pattern.base": "Email address invalid",
+    "string.pattern.base": "Invalid email address",
     "string.min": "Email address cannot be be smaller than 3 characters",
     "string.max": "Email address cannot be be larger than 320 characters"
   });
@@ -29,7 +29,7 @@ export const passwordSchema = joi.string()
   .regex(/^(?=(.*[a-z]){3,})(?=(.*[A-Z]){2,})(?=(.*[0-9]){2,})(?=(.*[!@#$%^&*()\-__+.]){1,}).{16,}$/)
   .required()
   .messages({
-    "string.pattern.base": "Password Invalid. A password must contain at least: 3 lowercase letters, 2 uppercase letters, 2 numbers and 1 special character",
+    "string.pattern.base": "Invalid password. A password must contain at least: 3 lowercase letters, 2 uppercase letters, 2 numbers and 1 special character",
     "string.min": "Password cannot be be smaller than 16 characters",
     "string.max": "Password cannot be larger than 256 characters"
   });

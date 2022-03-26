@@ -12,15 +12,13 @@ import Typography from "@material-ui/core/Typography";
 import FormStyles from "../../styles/FormStyles";
 
 import clsx from "clsx";
-import { IServerResponse, ServerResponseType, IUserData } from "../../types";
+import { IServerResponse, IUserData } from "../../types";
 import { isAlphaNumeric, hasAlphaNumeric, isValidEmail } from "../../scripts/DataValidation";
 
 import Popup from "../Popup";
 
 const SignupForm = (): JSX.Element => {
-    const textboxStyles: React.CSSProperties = {
-        paddingBottom: 15
-    }
+    const textboxStyles: React.CSSProperties = { paddingBottom: 15 }
     const history = useHistory();
     const formClasses = FormStyles();
 
@@ -45,10 +43,11 @@ const SignupForm = (): JSX.Element => {
         if (!emptyPasswordWarning && elementID === "password") setEmptyPasswordWarning(true);
     }
 
-    const [serverResponse, setServerResponse] = useState<IServerResponse>({})// This stores the latest server response
+    const [serverResponse, setServerResponse] = useState<IServerResponse>({ message: "" }); // This stores the latest server response
+    const [serverResponseStatus, setServerResponseStatus] = useState<number>(-1);
     const [requestInProcess, setRequestInProcess] = useState<boolean>(false);
 
-    const RegisterUser = async () => {
+    const registerUser = async () => {
         // This method registers the user on the server and sets the server response for display
         setRequestInProcess(true);
 
@@ -66,15 +65,18 @@ const SignupForm = (): JSX.Element => {
         }
 
         try {
-            const fetchData = await axios.post("http://localhost:5000/users/", userData)
+            console.log(userData);
+            const fetchData = await axios.post(`${process.env.REACT_APP_API_URL}/users/`, userData);
 
-            const serverMessage: object = await fetchData.data;
+            const serverMessage = await fetchData.data;
+            console.log(fetchData.status);
 
-            setServerResponse(serverMessage)
+            setServerResponseStatus(fetchData.status);
+            setServerResponse(serverMessage);
         }
         catch (e) {
-            console.error("Could not create user!", e)
-            setServerResponse({ type: ServerResponseType.Error, body: "Could not connect to server!", })
+            setServerResponseStatus(e.response.status);
+            setServerResponse({ message: e.response.data.message });
         }
 
         setRequestInProcess(false);
@@ -95,13 +97,13 @@ const SignupForm = (): JSX.Element => {
 
 
     const [usernameAvailable, setUsernameAvailable] = useState<boolean>(true);
-    const CheckUsernameAvailibility = async (username: string): Promise<boolean> => {
+    const checkUsernameAvail = async (username: string): Promise<boolean> => {
         // This method sends a request to an API by server to check if the current username is available
         try {
-            const request = await axios.get(`http://localhost:5000/usernameavailable?username=${username}`);
+            const request = await axios.get(`${process.env.REACT_APP_API_URL}/users/usernameavailable?username=${username}`);
 
-            if (request.data.data && request.data.data.available !== undefined)
-                return request.data.data.available;
+            if (request.data && request.data.available !== undefined)
+                return request.data.available;
 
             else return false;
         }
@@ -115,23 +117,23 @@ const SignupForm = (): JSX.Element => {
     useEffect(() => {
         // Everytime the username changes update its availability status
         if (userData.username !== null && userData.username.trim() !== "")
-            CheckUsernameAvailibility(userData.username).then(usernameAvail => setUsernameAvailable(usernameAvail));
+            checkUsernameAvail(userData.username).then(usernameAvail => setUsernameAvailable(usernameAvail));
     }, [userData.username])
 
     // Everytime username changes, make sure it is valid and available
     const [usernameError, setUsernameError] = useState<string>("");
     useEffect(() => {
-        if (userData.username === null) return
+        if (userData.username === null) return;
 
-        else if (userData.username.length > 50) setUsernameError("Username cannot be longer than 50 characters!")
+        else if (userData.username.length > 50) setUsernameError("Username cannot be longer than 50 characters!");
 
-        else if (emptyUsernameWarning && userData.username.trim() === "") setUsernameError("Username cannot be empty or whitespace!")
+        else if (emptyUsernameWarning && userData.username.trim() === "") setUsernameError("Username cannot be empty or whitespace!");
 
-        else if (!isAlphaNumeric(userData.username)) setUsernameError("Username must only be alphanumeric!")
+        else if (!isAlphaNumeric(userData.username)) setUsernameError("Username must only be alphanumeric!");
 
-        else if (!usernameAvailable) setUsernameError("Username is already taken!")
+        else if (!usernameAvailable) setUsernameError("Username is already taken!");
 
-        else setUsernameError("")
+        else setUsernameError("");
 
     }, [userData.username, usernameAvailable, emptyUsernameWarning])
 
@@ -177,8 +179,11 @@ const SignupForm = (): JSX.Element => {
 
 
     return (
-        <form className={formClasses.form}>
-            <Typography variant="h4" component="h1" className={formClasses.heading} color="textPrimary">Create your Account</Typography>
+        <form
+            className={formClasses.form}
+            onKeyPress={(e) => { if (e.key === "Enter") registerUser(); }}
+        >
+            <Typography variant="h4" component="h1" className={formClasses.heading} color="textPrimary">Sign up</Typography>
 
             <TextField
                 variant="outlined"
@@ -224,7 +229,7 @@ const SignupForm = (): JSX.Element => {
             <Button
                 variant="contained"
                 color="primary"
-                onClick={RegisterUser}
+                onClick={registerUser}
                 className={formClasses.button}
                 disabled={requestInProcess}
             >
@@ -238,8 +243,13 @@ const SignupForm = (): JSX.Element => {
             </Button>
 
             {
-                serverResponse.body === undefined ||
-                <Popup borderRadius={10} serverResponse={serverResponse} setServerResponse={setServerResponse} />
+                (serverResponse.message ?? "") === "" ||
+                <Popup
+                    borderRadius={10}
+                    serverResponse={serverResponse}
+                    serverResponseStatus={serverResponseStatus}
+                    setServerResponse={setServerResponse}
+                />
             }
 
             <Typography variant="body1" onClick={RedirectToSignInPage} className={clsx({

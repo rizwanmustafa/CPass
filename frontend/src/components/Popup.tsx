@@ -2,21 +2,20 @@ import { useEffect, useRef } from "react";
 import { IServerResponse } from "../types";
 import Button from "@material-ui/core/Button";
 import Typography from "@material-ui/core/Typography";
-import { ServerResponseType } from "../types";
 
 // Icons according to ServerResponseType
 import CheckCircleIcon from "@material-ui/icons/CheckCircle";
 import CancelIcon from '@material-ui/icons/Cancel';
-import WarningIcon from '@material-ui/icons/Warning';
 
 interface Props {
     borderRadius: number;
     serverResponse: IServerResponse;
+    serverResponseStatus: number;
     setServerResponse: React.Dispatch<React.SetStateAction<IServerResponse>>;
 }
 
 const Popup = (props: Props): JSX.Element => {
-    const mainColor = props.serverResponse.type === ServerResponseType.Successful ? "#00963f" : props.serverResponse.type === ServerResponseType.Error ? "#e21e2c" : "#eeb001";
+    const mainColor = props.serverResponseStatus === 200 ? "#00963f" : "#e21e2c";
 
     const popupDiv = useRef<HTMLDivElement>(null);
 
@@ -68,14 +67,20 @@ const Popup = (props: Props): JSX.Element => {
                 transition: "opacity 0.5s ease-in-out",
             }}>
                 {
-                    props.serverResponse.type === ServerResponseType.Successful ?
+                    props.serverResponseStatus === 200 ?
                         <CheckCircleIcon htmlColor={mainColor} style={{ fontSize: 100, }} /> :
-                        props.serverResponse.type === ServerResponseType.Error ?
-                            <CancelIcon htmlColor={mainColor} style={{ fontSize: 100, }} /> :
-                            <WarningIcon htmlColor={mainColor} style={{ fontSize: 100, }} />
+                        <CancelIcon htmlColor={mainColor} style={{ fontSize: 100, }} />
 
                 }
-                <Typography style={{ color: mainColor, paddingTop: 10, paddingBottom: 20, textAlign: "center" }}>{props.serverResponse.body}</Typography>
+                <Typography
+                    style={{
+                        color: mainColor,
+                        paddingTop: 10,
+                        paddingBottom: 20,
+                        textAlign: "center"
+                    }}>
+                    {props.serverResponse.message}
+                </Typography>
                 <Button
                     style={{
                         backgroundColor: mainColor,
@@ -84,7 +89,7 @@ const Popup = (props: Props): JSX.Element => {
                     }}
                     onClick={() => {
                         togglePopupOpacity()
-                        setTimeout(() => props.setServerResponse({}), 500)
+                        setTimeout(() => props.setServerResponse({ message: "" }), 500)
                     }}
                 >OK</Button>
             </div>

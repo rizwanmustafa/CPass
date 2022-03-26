@@ -3,7 +3,7 @@ import { useHistory } from "react-router-dom";
 import axios from "axios";
 
 // Import interfaces
-import { IUserData, IServerResponse, ServerResponseType } from "../../types";
+import { IUserData, IServerResponse } from "../../types";
 // Import styles
 import FormStyles from "../../styles/FormStyles";
 
@@ -40,10 +40,11 @@ const SigninForm = (props: Props): JSX.Element => {
     const [emptyUsernameWarning, setEmptyUsernameWarning] = useState<boolean>(false);
     const [emptyPasswordWarning, setEmptyPasswordWarning] = useState<boolean>(false);
 
-    const [serverResponse, setServerResponse] = useState<IServerResponse>({});
+    const [serverResponse, setServerResponse] = useState<IServerResponse>({ message: "" });
+    const [serverResponseStatus, setServerResponseStatus] = useState<number>(-1);
     const [requestInProcess, setRequestInProcess] = useState<boolean>(false);
 
-    const SigninUser = async () => {
+    const signIn = async () => {
         setRequestInProcess(true);
         // If the user has not input credentials, toggle warnings and return
         if (userData.username.trim() === "" || userData.password.trim() === "") {
@@ -62,50 +63,49 @@ const SigninForm = (props: Props): JSX.Element => {
                 password: userData.password,
             })
 
-            const response = await request.data;
+            const response = await request.data as IServerResponse;
 
-            if (response.type === ServerResponseType.Successful) {
+            if (request.status === 200) {
                 props.setUsername(userData.username);
                 props.setMailedToken(true);
             }
-            else setServerResponse(response)
+            else
+            {
+                setServerResponseStatus(request.status);
+                setServerResponse(response)
+            }
         }
         catch (e) {
-            console.error("Could not sign in user!", e)
-            setServerResponse({ type: ServerResponseType.Error, body: "Could not connect to server!", })
+            console.log(e.response.data.message);
+            setServerResponseStatus(e.response.status);
+            setServerResponse({ message: e.response.data.message });
         }
 
         setRequestInProcess(false);
     }
 
-    const HandleInput = (e: React.ChangeEvent<HTMLInputElement>) => {
-        // This method deals with changes in the value of Input Elements for forms
-
+    const handleInput = (e: React.ChangeEvent<HTMLInputElement>) => {
         const newUserData = {
             ...userData,
             [e.target.id]: e.target.value
         }
-
         setUserData(newUserData)
-    }
+    };
 
-    const ToggleEmptyValueWarning = (e: React.FocusEvent<HTMLInputElement>) => {
-        // If both warning are already toggled, do not do anything
+    const toggleEmptyWarning = (e: React.FocusEvent<HTMLInputElement>) => {
         if (emptyPasswordWarning && emptyUsernameWarning) return;
 
         const elementID: string = (e.target as HTMLInputElement).id
 
-        if (!emptyUsernameWarning && elementID === "username") setEmptyUsernameWarning(true);
-        else if (!emptyPasswordWarning && elementID === "password") setEmptyPasswordWarning(true);
+        if (elementID === "username" && !emptyUsernameWarning) setEmptyUsernameWarning(true);
+        else if (elementID === "password" && !emptyPasswordWarning) setEmptyPasswordWarning(true);
     }
 
-    const RedirectToSignUpPage = () => {
-        history.push("/signup");
-    }
+    const redirectToSignUpPage = () => history.push("/signup");
 
     return (
         <form className={formClasses.form}>
-            <Typography variant="h4" component="h1" className={formClasses.heading} color="textPrimary">Sign in to your Account</Typography>
+            <Typography variant="h4" component="h1" className={formClasses.heading} color="textPrimary">Sign in</Typography>
 
             <TextField
                 variant="outlined"
@@ -113,8 +113,8 @@ const SigninForm = (props: Props): JSX.Element => {
                 label="Username"
                 type="text"
                 id="username"
-                onChange={HandleInput}
-                onBlur={ToggleEmptyValueWarning}
+                onChange={handleInput}
+                onBlur={toggleEmptyWarning}
                 error={emptyUsernameWarning && userData.username.trim() === ""}
                 helperText={emptyUsernameWarning && userData.username.trim() === "" && "Username cannot be empty or whitespace!"}
                 value={userData.username}
@@ -127,8 +127,8 @@ const SigninForm = (props: Props): JSX.Element => {
                 label="Password"
                 type="password"
                 id="password"
-                onChange={HandleInput}
-                onBlur={ToggleEmptyValueWarning}
+                onChange={handleInput}
+                onBlur={toggleEmptyWarning}
                 error={emptyPasswordWarning && userData.password.trim() === ""}
                 helperText={emptyPasswordWarning && userData.password.trim() === "" && "Password cannot be empty or whitespace!"}
                 value={userData.password}
@@ -138,7 +138,7 @@ const SigninForm = (props: Props): JSX.Element => {
             <Button
                 variant="contained"
                 color="primary"
-                onClick={SigninUser}
+                onClick={signIn}
                 className={formClasses.button}
                 disabled={requestInProcess}
             >
@@ -152,11 +152,16 @@ const SigninForm = (props: Props): JSX.Element => {
             </Button>
 
             {
-                serverResponse.body === undefined ||
-                <Popup borderRadius={10} serverResponse={serverResponse} setServerResponse={setServerResponse} />
+                (serverResponse.message ?? "") === "" ||
+                <Popup
+                    borderRadius={10}
+                    serverResponseStatus={serverResponseStatus}
+                    serverResponse={serverResponse}
+                    setServerResponse={setServerResponse}
+                />
             }
 
-            <Typography variant="body1" onClick={RedirectToSignUpPage} className={clsx({
+            <Typography variant="body1" onClick={redirectToSignUpPage} className={clsx({
                 [formClasses.helperText]: true,
                 [formClasses.pointerChange]: true,
             })

@@ -2,7 +2,7 @@ import React, { useState } from "react";
 import axios from "axios";
 
 // Import interfaces
-import { IServerResponse, ServerResponseType } from "../../types";
+import { IServerResponse } from "../../types";
 
 // Import necessary styles
 import FormStyles from "../../styles/FormStyles";
@@ -24,7 +24,8 @@ const VerifyLogin = (props: Props): JSX.Element => {
 
     const [token, setToken] = useState<string>("");
     const [requestInProcess, setRequestInProcess] = useState<boolean>(false);
-    const [serverResponse, setServerResponse] = useState<IServerResponse>({});
+    const [serverResponse, setServerResponse] = useState<IServerResponse>({ message: "" });
+    const [serverResponseStatus, setServerResponseStatus] = useState<number>(-1);
 
     const VerifyToken = async () => {
         setRequestInProcess(true);
@@ -34,16 +35,18 @@ const VerifyLogin = (props: Props): JSX.Element => {
                 token: token
             })
 
-            const response = await request.data;
+            const response = await request.data as IServerResponse;
 
-            if (response.type === ServerResponseType.Successful) {
+            if (request.status === 200)
                 props.setToken(token)
+            else {
+                setServerResponseStatus(request.status);
+                setServerResponse(response)
             }
-            else setServerResponse(response)
         }
         catch (e) {
             console.error("Could not verify token!", e)
-            setServerResponse({ type: ServerResponseType.Error, body: "Could not connect to server!", })
+            setServerResponse({ message: "Could not connect to server!", })
         }
 
         setRequestInProcess(false);
@@ -90,8 +93,13 @@ const VerifyLogin = (props: Props): JSX.Element => {
             </Button>
 
             {
-                serverResponse.body === undefined ||
-                <Popup borderRadius={10} serverResponse={serverResponse} setServerResponse={setServerResponse} />
+                (serverResponse.message ?? "") === "" ||
+                <Popup
+                    borderRadius={10}
+                    serverResponse={serverResponse}
+                    serverResponseStatus={serverResponseStatus}
+                    setServerResponse={setServerResponse}
+                />
             }
 
         </form>
