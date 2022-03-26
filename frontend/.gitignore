@@ -1,7 +1,9 @@
 # See https://help.github.com/articles/ignoring-files/ for more about ignoring files.
 
-# yarn related stuff
-# yarn-related things
+# Environment Variables
+.env
+
+# Yarn
 .pnp.*
 .yarn/
 *.yarn/patches
