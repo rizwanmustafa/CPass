@@ -14,27 +14,26 @@ const client = new MongoClient(DB_URI, { connectTimeoutMS: 10000 });
 
 let DB: undefined | Db;
 
-export const openConnection = () => {
-  client.connect((err, newDB) => {
-    if (err || !newDB) {
-      console.error(colors.red("Error connecting to DB"));
-      if (err)
-        console.error(colors.red(err.message));
+export const connectToDB = async () => {
+  console.log("Started connecting to database...");
 
-      if (!newDB)
-        console.error(colors.red("DB is undefined"));
-
-      console.log(colors.red("Exiting with code 1"));
-      process.exit(1);
-    }
-
-    DB = newDB.db(DB_NAME);
+  try {
+    await client.connect();
+    DB = client.db(DB_NAME);
     console.log(colors.green(`Successfully connected to mongodb database: ${DB_NAME}`));
+  }
+  catch (error) {
+    if (typeof error.message === "string" || error.message instanceof String) {
+      console.error(colors.red(error.message));
+    }
+    else console.error(error);
+    console.error(colors.red("Failed to connect to database. Exiting with code 1"));
+    process.exit(1);
+  };
 
-  });
 };
 
-export const closeConnection = () => {
+export const disconnctFromDB = () => {
   if (!DB) { return }
 
   try {
@@ -42,8 +41,13 @@ export const closeConnection = () => {
     console.log(colors.green(`Successfully closed connection to mongodb database: ${DB_NAME}`));
   }
   catch (e) {
-    console.error(colors.red("There was an error closing the connection to mongodb database"));
-    console.error(colors.red(e as string));
+    console.error(colors.red("Error while closing the connection to mongodb database"));
+    if (typeof e === "string" || e instanceof String) {
+      console.error(colors.red(e as string));
+    }
+    else {
+      console.error(e);
+    }
   }
 };
 
@@ -55,8 +59,4 @@ export const getCollection = (collectionName: string) => {
   return DB.collection(collectionName);
 }
 
-process.on("SIGINT", closeConnection)
-
 export const getDB = () => DB;
-
-openConnection();

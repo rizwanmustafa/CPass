@@ -3,8 +3,11 @@ import express from "express";
 import cors from "cors";
 import morgan from "morgan";
 
+import { connectToDB, disconnctFromDB, getCollection } from "./db";
+
 // Import routes
 import { router as UserRouter } from "./routes/users";
+import colors from "colors/safe";
 
 const app = express();
 let requestsHandled = 0;
@@ -39,4 +42,20 @@ app.use("*", (_req, res) => {
   });
 });
 
-app.listen(5000, () => console.log("The server has started listening on port 5000"));
+const bootServer = async () => {
+  await connectToDB();
+  console.log(await getCollection("users")?.findOne());
+  app.listen(5005, () => console.log(`The server has started listening on port: ${colors.underline("5005")}`));
+};
+
+const cleanUpServer = () => {
+  disconnctFromDB();
+  process.exit(0);
+}
+
+process.on("SIGINT", cleanUpServer);
+process.on("SIGTERM", cleanUpServer);
+process.on("SIGUSER1", cleanUpServer);
+process.on("SIGUSER2", cleanUpServer);
+
+bootServer();

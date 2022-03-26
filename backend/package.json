@@ -5,7 +5,8 @@
   "license": "GPL-3.0",
   "private": true,
   "scripts": {
-    "start": "nodemon ./index.ts"
+    "dev": "nodemon ./index.ts",
+    "start": "ts-node ./index.ts"
   },
   "dependencies": {
     "colors": "1.4.0",
@@ -14,7 +15,8 @@
     "express": "4.17.3",
     "joi": "17.6.0",
     "mongodb": "4.4.1",
-    "morgan": "1.10.0"
+    "morgan": "1.10.0",
+    "nodemon": "2.0.15"
   },
   "devDependencies": {
     "@types/cors": "2.8.12",
