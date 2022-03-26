@@ -26,7 +26,7 @@ app.config.update(
     # Email Settings
     MAIL_SERVER=GetEnvVar('MAIL_SERVER'),
     MAIL_PORT=int(GetEnvVar('MAIL_PORT')),
-    MAIL_USE_SSL=GetEnvVar('MAIL_USE_SSL') == '1',
+    MAIL_USE_SSL=GetEnvVar('MAIL_USE_SSL') == 'True',
     MAIL_USERNAME=GetEnvVar('MAIL_USERNAME'),
     MAIL_PASSWORD=GetEnvVar("MAIL_PASSWORD"),
 )

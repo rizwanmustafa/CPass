@@ -5,3 +5,4 @@ flask_mail
 python-decouple
 pymysql
 pyjwt
+cryptography
