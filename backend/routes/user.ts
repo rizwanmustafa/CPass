@@ -1,6 +1,6 @@
 import express from "express";
-import { emailSchema, passwordSchema, usernameSchema } from "../schemas/user";
-import { createUser } from "../controllers/user";
+import { usernameSchema, emailSchema, authKeySchema } from "../schemas/user";
+import { createUser, deleteUser } from "../controllers/user";
 import validateSchema from "../schemas/validateSchema";
 
 export const router = express.Router();
@@ -9,12 +9,17 @@ export const router = express.Router();
 router.post(
   "/",
   (req, res, next) => {
-    const { email, username, password } = req.body;
+    const { email, username, authKey } = req.body;
     if (!validateSchema(username, usernameSchema, res)) return;
     if (!validateSchema(email, emailSchema, res)) return;
-    if (!validateSchema(password, passwordSchema, res)) return;
+    if (!validateSchema(authKey, authKeySchema, res)) return;
 
     next();
   },
   createUser
+);
+
+router.delete(
+  "/",
+  deleteUser
 );

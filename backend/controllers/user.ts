@@ -1,25 +1,58 @@
 import { Request, Response } from "express";
-export const createUser = (req: Request, res: Response) => {
+import { getCollection } from "../db";
+
+const usernameUsed = async (username: string): Promise<boolean> => {
+  const usersCollection = getCollection("users");
+  if (!usersCollection) return false;
+
+  const user = await usersCollection.findOne({ username });
+  return !!user;
+}
+
+const emailUsed = async (email: string): Promise<boolean> => {
+  const usersCollection = getCollection("users");
+  if (!usersCollection) return false;
+
+  const user = await usersCollection.findOne({ email });
+  return !!user;
+}
+
+export const createUser = async (req: Request, res: Response) => {
+
   type UserData = {
     email: string,
     username: string,
-    password: string
+    authKey: string
   };
 
-  const { email, username, password }: UserData = req.body;
+  const { email, username, authKey }: UserData = req.body;
 
-  // Debug Statements TODO: Remove later
-  console.log(`Email: ${email}`);
-  console.log(`Username: ${username}`);
-  console.log(`Password: ${password}`);
+  if (await usernameUsed(username)) return res.status(400).json({ message: "Username already in use" });
+  if (await emailUsed(email)) return res.status(400).json({ message: "Email already in use" });
 
-  let users : Record<string, UserData> = {};
+  const usersCollection = getCollection("users");
 
-  if (users[username]) return res.json("Username is taken!");
+  if (!usersCollection) return res.status(500).json({ message: "Internal Server Error" }); // TODO: Later use a custom logger as well
 
-  users[username] = { username, email, password };
+  // TODO: Generate 2FA secret
 
-  console.log(users);
+  usersCollection.insertOne({ email, username, authKey });
 
-  return res.json({ message: "Your data has been successfully processed" });
+  return res.status(200).json({ message: "Account created" });
 };
+
+
+export const deleteUser = async (req: Request, res: Response) => {
+  const { username }: { username: string } = req.body;
+
+  const usersCollection = getCollection("users");
+  if (!usersCollection) return res.status(500).json({ message: "Internal Server Error" }); // TODO: Later use a custom logger as well
+
+  const user = await usersCollection.findOne({ username });
+
+  if (!user) return res.status(404).json({ message: "User not found" });
+
+  usersCollection.deleteOne({ _id: user._id });
+
+  return res.status(200).json({ message: "User deleted" });
+}

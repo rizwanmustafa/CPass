@@ -23,13 +23,11 @@ export const emailSchema = joi.string()
     "string.max": "Email address cannot be be larger than 320 characters"
   });
 
-export const passwordSchema = joi.string()
-  .min(16)
-  .max(256)
-  .regex(/^(?=(.*[a-z]){3,})(?=(.*[A-Z]){2,})(?=(.*[0-9]){2,})(?=(.*[!@#$%^&*()\-__+.]){1,}).{16,}$/)
+export const authKeySchema = joi.string()
+  .min(64)
+  .max(128)
   .required()
   .messages({
-    "string.pattern.base": "Invalid password. A password must contain at least: 3 lowercase letters, 2 uppercase letters, 2 numbers and 1 special character",
-    "string.min": "Password cannot be be smaller than 16 characters",
-    "string.max": "Password cannot be larger than 256 characters"
+    "string.min": "Auth key cannot be be smaller than 64 characters",
+    "string.max": "Auth key cannot be larger than 128 characters"
   });
