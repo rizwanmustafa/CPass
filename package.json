@@ -11,10 +11,15 @@
     "install:all": "yarn install && cd frontend && yarn install && cd ../backend && yarn install"
   },
   "devDependencies": {
+    "@types/qrcode": "1.4.2",
+    "@types/speakeasy": "2.0.7",
     "concurrently": "7.0.0",
     "typescript": "4.6.3"
   },
   "dependencies": {
-    "dotenv": "16.0.0"
+    "dotenv": "16.0.0",
+    "nodemailer": "6.7.3",
+    "qrcode": "1.5.0",
+    "speakeasy": "2.0.0"
   }
 }

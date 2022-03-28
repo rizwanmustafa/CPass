@@ -1,5 +1,10 @@
 import { Request, Response } from "express";
 import { getCollection } from "../db";
+import { send2faMail } from "../utils/mailer";
+import speakeasy from "speakeasy";
+import qrcode from "qrcode";
+
+// Utility functions
 
 const usernameUsed = async (username: string): Promise<boolean> => {
   const usersCollection = getCollection("users");
@@ -17,28 +22,41 @@ const emailUsed = async (email: string): Promise<boolean> => {
   return !!user;
 }
 
+// Controller functions
 export const createUser = async (req: Request, res: Response) => {
+  try {
 
-  type UserData = {
-    email: string,
-    username: string,
-    authKey: string
-  };
+    type UserData = {
+      email: string,
+      username: string,
+      authKey: string
+    };
 
-  const { email, username, authKey }: UserData = req.body;
+    const { email, username, authKey }: UserData = req.body;
 
-  if (await usernameUsed(username)) return res.status(400).json({ message: "Username already in use" });
-  if (await emailUsed(email)) return res.status(400).json({ message: "Email already in use" });
+    if (await usernameUsed(username)) return res.status(400).json({ message: "Username already in use" });
+    if (await emailUsed(email)) return res.status(400).json({ message: "Email already in use" });
 
-  const usersCollection = getCollection("users");
+    const usersCollection = getCollection("users");
 
-  if (!usersCollection) return res.status(500).json({ message: "Internal Server Error" }); // TODO: Later use a custom logger as well
+    if (!usersCollection) return res.status(500).json({ message: "Internal Server Error" }); // TODO: Later use a custom logger as well
 
-  // TODO: Generate 2FA secret
+    const userSecret = speakeasy.generateSecret({ name: `CloudPass ${email}` });
 
-  usersCollection.insertOne({ email, username, authKey });
+    const qrCode = await qrcode.toString(userSecret.otpauth_url as string, { type: "svg" });
 
-  return res.status(200).json({ message: "Account created" });
+    // TODO: Send a link to first verify their email address
+    // TODO: Upon verification the user will be sent the 2FA email
+    await send2faMail(email, userSecret.base32, qrCode);
+
+    usersCollection.insertOne({ email, username, authKey, secret: userSecret.base32, verified: false });
+
+    return res.status(200).json({ message: "Account created" });
+  }
+  catch (e) {
+    console.error("There was an error while creating a user");
+    console.error(e);
+  }
 };
 
 
