@@ -1,4 +1,5 @@
 #!/usr/bin/env ts-node
+import "dotenv/config";
 import express from "express";
 import cors from "cors";
 import morgan from "morgan";
@@ -43,16 +44,19 @@ app.use("*", (_req, res) => {
   });
 });
 
+const SERVER_PORT = process.env.SERVER_PORT ?? 5005;
+
 const bootServer = async () => {
   await connectToDB();
-  app.listen(5005)
+  app.listen(SERVER_PORT)
     .on("error", (error) => {
       Logger.error("Error while starting the server");
       Logger.error(error.message);
       Logger.error("Exiting the server with code 1");
-      process.exit(1)
+      process.exit(1);
     });
-  () => Logger.success(`The server has started listening on port: ${chalk.underline("5005")}`);
+  Logger.success(`The server has started listening on port ${SERVER_PORT}`);
+  Logger.success(`Server: http://localhost:${SERVER_PORT}`);
 };
 
 const cleanUpServer = () => {
