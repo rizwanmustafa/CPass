@@ -45,7 +45,14 @@ app.use("*", (_req, res) => {
 
 const bootServer = async () => {
   await connectToDB();
-  app.listen(5005, () => Logger.success(`The server has started listening on port: ${chalk.underline("5005")}`));
+  app.listen(5005)
+    .on("error", (error) => {
+      Logger.error("Error while starting the server");
+      Logger.error(error.message);
+      Logger.error("Exiting the server with code 1");
+      process.exit(1)
+    });
+  () => Logger.success(`The server has started listening on port: ${chalk.underline("5005")}`);
 };
 
 const cleanUpServer = () => {
@@ -53,6 +60,7 @@ const cleanUpServer = () => {
   process.exit(0);
 }
 
+process.on("exit", cleanUpServer);
 process.on("SIGINT", cleanUpServer);
 process.on("SIGTERM", cleanUpServer);
 process.on("SIGUSER1", cleanUpServer);
