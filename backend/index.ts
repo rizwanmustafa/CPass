@@ -59,7 +59,12 @@ const bootServer = async () => {
   Logger.success(`Server: http://localhost:${SERVER_PORT}`);
 };
 
+let cleaningUp = false;
+
 const cleanUpServer = () => {
+  if(cleaningUp) return;
+  cleaningUp = true;
+  Logger.info("Exiting server due to manual termination with code 0");
   disconnctFromDB();
   process.exit(0);
 }
