@@ -3,11 +3,12 @@ import express from "express";
 import cors from "cors";
 import morgan from "morgan";
 
-import { connectToDB, disconnctFromDB } from "./db";
+import { connectToDB, disconnctFromDB } from "./db.js";
 
 // Import routes
 import { router as UserRouter } from "./routes/user";
-import colors from "colors/safe";
+import chalk from "chalk";
+import Logger from "./utils/logger";
 
 const app = express();
 let requestsHandled = 0;
@@ -44,7 +45,7 @@ app.use("*", (_req, res) => {
 
 const bootServer = async () => {
   await connectToDB();
-  app.listen(5005, () => console.log(`The server has started listening on port: ${colors.underline("5005")}`));
+  app.listen(5005, () => Logger.success(`The server has started listening on port: ${chalk.underline("5005")}`));
 };
 
 const cleanUpServer = () => {

@@ -1,6 +1,7 @@
 import nodemailer from "nodemailer";
 import { google } from "googleapis";
 import { GetAccessTokenResponse } from "google-auth-library/build/src/auth/oauth2client";
+import Logger from "./logger";
 
 const { CLIENT_ID, CLIENT_SECRET, CLIENT_REDIRECT_URL, CLIENT_REFRESH_TOKEN } = process.env;
 
@@ -47,13 +48,11 @@ export const send2faMail = async (email: string, base32Secret: string, qrCodeSVG
 
   await transport.sendMail(mailOpts, (error, info) => {
     if (error) {
-      console.error("There was an error while sending the mail");
-      console.error(error); // TODO: Use custom logger later
+      Logger.error(`Error while sending 2FA email to ${email}`);
+      Logger.error(`Error Name: ${error.name} Error Message: ${error.message} Error Stack: ${error.stack}`);
     }
-    if (info) {
-      console.log("Info about sent mail");
-      console.log(info);
-    }
+    if (info)
+      Logger.success(`2FA Email sent successfully to ${email}`);
   });
 
 };

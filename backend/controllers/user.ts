@@ -1,8 +1,10 @@
 import { Request, Response } from "express";
-import { getCollection } from "../db";
-import { send2faMail } from "../utils/mailer";
 import speakeasy from "speakeasy";
 import qrcode from "qrcode";
+
+import { getCollection } from "../db";
+import { send2faMail } from "../utils/mailer";
+import Logger from "../utils/logger";
 
 // Utility functions
 
@@ -54,8 +56,8 @@ export const createUser = async (req: Request, res: Response) => {
     return res.status(200).json({ message: "Account created" });
   }
   catch (e) {
-    console.error("There was an error while creating a user");
-    console.error(e);
+    Logger.error("There was an error while creating a user");
+    Logger.error(e);
   }
 };
 

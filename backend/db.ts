@@ -1,11 +1,11 @@
 import { Db, MongoClient } from "mongodb";
 import "dotenv/config";
-import colors from "colors/safe";
+import Logger from "./utils/logger";
 
 const { DB_URI, DB_NAME } = process.env;
 
 if (DB_URI === undefined || DB_NAME === undefined) {
-  console.error("Invalid values for DB configuration. Exiting with code 1");
+  Logger.error("Invalid values for DB configuration. Exiting with code 1");
   process.exit(1);
 }
 
@@ -15,19 +15,19 @@ const client = new MongoClient(DB_URI, { connectTimeoutMS: 10000 });
 let DB: undefined | Db;
 
 export const connectToDB = async () => {
-  console.log("Started connecting to database...");
+  Logger.info("Started connecting to database...");
 
   try {
     await client.connect();
     DB = client.db(DB_NAME);
-    console.log(colors.green(`Successfully connected to mongodb database: ${DB_NAME}`));
+    Logger.success(`Successfully connected to mongodb database: ${DB_NAME}`);
   }
   catch (error) {
     if (typeof error.message === "string" || error.message instanceof String) {
-      console.error(colors.red(error.message));
+      Logger.error(error.message);
     }
-    else console.error(error);
-    console.error(colors.red("Failed to connect to database. Exiting with code 1"));
+    else Logger.error(error);
+    Logger.error("Failed to connect to database. Exiting with code 1");
     process.exit(1);
   };
 
@@ -38,16 +38,11 @@ export const disconnctFromDB = () => {
 
   try {
     client.close();
-    console.log(colors.green(`Successfully closed connection to mongodb database: ${DB_NAME}`));
+    Logger.success(`Successfully closed connection to mongodb database: ${DB_NAME}`);
   }
   catch (e) {
-    console.error(colors.red("Error while closing the connection to mongodb database"));
-    if (typeof e === "string" || e instanceof String) {
-      console.error(colors.red(e as string));
-    }
-    else {
-      console.error(e);
-    }
+    Logger.error("Error while closing the connection to mongodb database");
+    Logger.error(`Error Name: ${e.name} Error Message: ${e.message}`);
   }
 };
 
