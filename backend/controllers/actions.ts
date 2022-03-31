@@ -3,7 +3,7 @@ import { getCollection } from "../db";
 import Logger from "../utils/logger";
 import { genRandomString } from "../utils/misc";
 
-import { Cloud } from "../types/types"; // Find some way to use types without importing them
+import { User } from "../types/types"; // Find some way to use types without importing them
 
 // Handle actions
 export const handleActions = async (req: Request, res: Response) => {
@@ -21,7 +21,7 @@ export const createEmailVerificationAction = async (username: string, email: str
       return false;
     }
 
-    const user: Cloud.User = await usersCollection.findOne({ username }) as Cloud.User;
+    const user: User = await usersCollection.findOne({ username }) as User;
     if (!user) {
       Logger.error("Create email verification action called on non-existent user");
       return false;
@@ -35,7 +35,7 @@ export const createEmailVerificationAction = async (username: string, email: str
     }
 
     await usersCollection.updateOne({ username }, {
-      $st:
+      $set:
       {
         links: {
           ...user.links,

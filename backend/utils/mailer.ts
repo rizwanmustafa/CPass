@@ -3,13 +3,46 @@ import { google } from "googleapis";
 import { GetAccessTokenResponse } from "google-auth-library/build/src/auth/oauth2client";
 import Logger from "./logger";
 
+import { MailQueueItem } from "../types/types";
+import SMTPTransport from "nodemailer/lib/smtp-transport";
+
 const { CLIENT_ID, CLIENT_SECRET, CLIENT_REDIRECT_URL, CLIENT_REFRESH_TOKEN } = process.env;
 
 const oauth2Client = new google.auth.OAuth2(CLIENT_ID, CLIENT_SECRET, CLIENT_REDIRECT_URL);
 oauth2Client.setCredentials({ refresh_token: CLIENT_REFRESH_TOKEN });
 
+const mailQueue: MailQueueItem[] = [];
+
+setInterval(() => {
+  if (mailQueue.length === 0) return;
+
+  const mail = mailQueue.shift();
+  if (!mail) return;
+
+  sendMail(mail, 1);
+
+}, 0);
+
+const sendMail = async (mailItem: MailQueueItem, tries: number) => {
+  mailItem.transport.sendMail(mailItem.mailOpts, (error, info) => {
+    if (error) {
+      Logger.error(`Sending mail to ${mailItem.mailOpts.to} failed. Try count: ${tries}.`);
+      if (tries < 5) {
+        Logger.info("Trying again in 5000 milliseconds");
+        setTimeout(() => {
+          sendMail(mailItem, tries + 1);
+        }, 5000);
+      }
+    };
+    console.log(info);
+
+    mailItem.callback(error, info);
+  });
+  mailItem.transport.close();
+};
+
 const createTransport = (accessToken: GetAccessTokenResponse) => {
-  const transport = nodemailer.createTransport({
+  const transport = nodemailer.createTransport(new SMTPTransport({
     service: "gmail",
     auth: {
       type: "OAuth2",
@@ -17,9 +50,11 @@ const createTransport = (accessToken: GetAccessTokenResponse) => {
       clientId: CLIENT_ID,
       clientSecret: CLIENT_SECRET,
       refreshToken: CLIENT_REFRESH_TOKEN,
-      accessToken: accessToken
-    }
-  } as nodemailer.TransportOptions);
+      accessToken: accessToken.token ?? ""
+    },
+    connectionTimeout: 15000,
+    socketTimeout: 15000,
+  }) as nodemailer.TransportOptions);
 
   return transport
 }
@@ -32,7 +67,6 @@ export const send2faMail = async (email: string, base32Secret: string, qrCodeSVG
   const accessToken = await oauth2Client.getAccessToken();
   const transport = createTransport(accessToken);
 
-  // TODO: Move this secret generation part to a separate later and take the qr coded file as a param
   const mailOpts = {
     from: process.env.MAIL_USER as string,
     to: email,
@@ -44,15 +78,19 @@ export const send2faMail = async (email: string, base32Secret: string, qrCodeSVG
     attachments: [
       { content: qrCodeSVG, filename: "qrcode.svg", contentType: "image/svg+xml", }
     ]
-  }
+  };
 
-  await transport.sendMail(mailOpts, (error, info) => {
-    if (error) {
-      Logger.error(`Error while sending 2FA email to ${email}`);
-      Logger.error(`Error Name: ${error.name} Error Message: ${error.message} Error Stack: ${error.stack}`);
+  mailQueue.push({
+    transport,
+    mailOpts,
+    callback: (error, info) => {
+      if (error) {
+        Logger.error(`Error while sending 2FA email to ${email}`);
+        Logger.error(`Error Message: ${error.message} Error Stack: ${error.stack}`);
+      }
+      if (info)
+        Logger.success(`2FA Email sent successfully to ${email}`);
     }
-    if (info)
-      Logger.success(`2FA Email sent successfully to ${email}`);
   });
 
 };

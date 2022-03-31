@@ -42,7 +42,7 @@ export const disconnctFromDB = () => {
   }
   catch (e) {
     Logger.error("Error while closing the connection to mongodb database");
-    Logger.error(`Error Name: ${e.name} Error Message: ${e.message}`);
+    Logger.error(`Error Message: ${e.message} Error Stack: ${e.stack}`);
   }
 };
 

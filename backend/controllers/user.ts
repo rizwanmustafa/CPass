@@ -6,7 +6,7 @@ import { getCollection } from "../db";
 import { send2faMail } from "../utils/mailer";
 import Logger from "../utils/logger";
 
-import { Cloud } from "../types/types";
+import { User } from "../types/types";
 import { createEmailVerificationAction } from "./actions";
 
 // Utility functions
@@ -79,7 +79,7 @@ export const deleteUser = async (req: Request, res: Response) => {
     return res.status(500).json({ message: "Internal Server Error" });
   }
 
-  const user: Cloud.User = await usersCollection.findOne({ username }) as Cloud.User;
+  const user: User = await usersCollection.findOne({ username }) as User;
 
   if (!user) return res.status(404).json({ message: "User not found" });
 
