@@ -33,12 +33,12 @@ const sendMail = async (mailItem: MailQueueItem, tries: number) => {
           sendMail(mailItem, tries + 1);
         }, 5000);
       }
-    };
-    console.log(info);
-
+    }
+    else {
+      mailItem.transport.close();
+    }
     mailItem.callback(error, info);
   });
-  mailItem.transport.close();
 };
 
 const createTransport = (accessToken: GetAccessTokenResponse) => {
