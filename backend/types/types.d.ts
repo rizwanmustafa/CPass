@@ -8,7 +8,7 @@ export interface User {
   authKey: string;
   secret: string;
   verfied: boolean;
-  links?: Record<string, UserAction>;
+  actions?: Record<string, UserAction>;
 }
 
 export interface UserAction { type: string; used: boolean; email?: string }

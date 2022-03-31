@@ -54,7 +54,7 @@ export const createUser = async (req: Request, res: Response) => {
     // TODO: Send a link to first verify their email address
     send2faMail(email, userSecret.base32, qrCode);
 
-    await usersCollection.insertOne({ email, username, authKey, secret: userSecret.base32, verified: false });
+    await usersCollection.insertOne({ email, username, authKey, secret: userSecret.base32, emailVerified: false });
     await createEmailVerificationAction(username, email);
 
     return res.status(200).json({ message: "Account created" });
