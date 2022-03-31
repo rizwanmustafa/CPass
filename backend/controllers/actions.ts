@@ -14,36 +14,42 @@ export const handleActions = async (req: Request, res: Response) => {
 
 // Create actions
 export const createEmailVerificationAction = async (username: string, email: string): Promise<boolean> => {
-  const usersCollection = getCollection("users");
-  if (!usersCollection) {
-    Logger.error("Database - Failed to get users collection");
-    return false;
-  }
-
-  const user: Cloud.User = await usersCollection.findOne({ username }) as Cloud.User;
-  if (!user) {
-    Logger.error("Create email verification action called on non-existent user");
-    return false;
-  }
-
-  if (!user.links) user.links = {};
-
-  let randomID = genRandomString(32);
-  while (user?.links?.[randomID]) {
-    randomID = genRandomString(32);
-  }
-
-  await usersCollection.updateOne({ username }, {
-    $set:
-    {
-      links: {
-        ...user.links,
-        [randomID]: { type: "emailVerification", email }
-      }
+  try {
+    const usersCollection = getCollection("users");
+    if (!usersCollection) {
+      Logger.error("Database - Failed to get users collection");
+      return false;
     }
-  });
 
-  console.log("I was executed");
+    const user: Cloud.User = await usersCollection.findOne({ username }) as Cloud.User;
+    if (!user) {
+      Logger.error("Create email verification action called on non-existent user");
+      return false;
+    }
 
-  return true;
+    if (!user.links) user.links = {};
+
+    let randomID = genRandomString(32);
+    while (user?.links?.[randomID]) {
+      randomID = genRandomString(32);
+    }
+
+    await usersCollection.updateOne({ username }, {
+      $st:
+      {
+        links: {
+          ...user.links,
+          [randomID]: { type: "emailVerification", email }
+        }
+      }
+    });
+
+    return true;
+  }
+  catch (e) {
+    if (e instanceof Error) Logger.error(e.message);
+    else Logger.error(e);
+
+    return false;
+  }
 };

@@ -36,8 +36,8 @@ export const send2faMail = async (email: string, base32Secret: string, qrCodeSVG
   const mailOpts = {
     from: process.env.MAIL_USER as string,
     to: email,
-    subject: "CloudPass 2FA Setup",
-    text: `Thanks for registering on CloudPass.\n
+    subject: "CPass 2FA Setup",
+    text: `Thanks for registering on CPass.\n
     Please keep the QR code attached secure and use it for 2FA.\n
     It is recommended that you use an app like Google Authenticator for two factor authentication
     You can also use the following secret key: ${base32Secret}\n`.replace(/\n\s+/g, "\n"),

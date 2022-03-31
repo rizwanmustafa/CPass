@@ -48,7 +48,7 @@ export const createUser = async (req: Request, res: Response) => {
       return res.status(500).json({ message: "Internal Server Error" });
     }
 
-    const userSecret = speakeasy.generateSecret({ name: `CloudPass ${email}` });
+    const userSecret = speakeasy.generateSecret({ name: `CPass ${email}` });
     const qrCode = await qrcode.toString(userSecret.otpauth_url as string, { type: "svg" });
 
     // TODO: Send a link to first verify their email address
@@ -60,9 +60,12 @@ export const createUser = async (req: Request, res: Response) => {
     return res.status(200).json({ message: "Account created" });
   }
   catch (e) {
-    console.log(e)
-    Logger.error("There was an error while creating a user");
-    Logger.error(e);
+    Logger.error("Error while creating a user");
+
+    if (e instanceof Error) Logger.error(e.message);
+    else Logger.error(e);
+
+    return res.status(500).json({ message: "Internal Server Error" });
   }
 };
 
