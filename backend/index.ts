@@ -5,11 +5,12 @@ import cors from "cors";
 import morgan from "morgan";
 
 import { connectToDB, disconnctFromDB } from "./db.js";
+import Logger from "./utils/logger";
 
 // Import routes
 import { router as UserRouter } from "./routes/user";
-import chalk from "chalk";
-import Logger from "./utils/logger";
+import { router as ActionsRouter } from "./routes/actions";
+
 
 const app = express();
 let requestsHandled = 0;
@@ -29,6 +30,7 @@ app.use((_req, _res, next) => {
 
 // Add routes
 app.use("/users", UserRouter);
+app.use("/actions", ActionsRouter);
 
 app.get("/", (_req, res) => {
   res.json({
@@ -62,7 +64,7 @@ const bootServer = async () => {
 let cleaningUp = false;
 
 const cleanUpServer = () => {
-  if(cleaningUp) return;
+  if (cleaningUp) return;
   cleaningUp = true;
   Logger.info("Exiting server due to manual termination with code 0");
   disconnctFromDB();

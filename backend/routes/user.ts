@@ -5,7 +5,6 @@ import validateSchema from "../schemas/validateSchema";
 
 export const router = express.Router();
 
-
 router.post(
   "/",
   (req, res, next) => {

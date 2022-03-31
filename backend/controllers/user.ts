@@ -6,6 +6,9 @@ import { getCollection } from "../db";
 import { send2faMail } from "../utils/mailer";
 import Logger from "../utils/logger";
 
+import { Cloud } from "../types/types";
+import { createEmailVerificationAction } from "./actions";
+
 // Utility functions
 
 const usernameUsed = async (username: string): Promise<boolean> => {
@@ -40,22 +43,24 @@ export const createUser = async (req: Request, res: Response) => {
     if (await emailUsed(email)) return res.status(400).json({ message: "Email already in use" });
 
     const usersCollection = getCollection("users");
-
-    if (!usersCollection) return res.status(500).json({ message: "Internal Server Error" }); // TODO: Later use a custom logger as well
+    if (!usersCollection) {
+      Logger.error("Database - Failed to get users collection");
+      return res.status(500).json({ message: "Internal Server Error" });
+    }
 
     const userSecret = speakeasy.generateSecret({ name: `CloudPass ${email}` });
-
     const qrCode = await qrcode.toString(userSecret.otpauth_url as string, { type: "svg" });
 
     // TODO: Send a link to first verify their email address
-    // TODO: Upon verification the user will be sent the 2FA email
-    await send2faMail(email, userSecret.base32, qrCode);
+    send2faMail(email, userSecret.base32, qrCode);
 
-    usersCollection.insertOne({ email, username, authKey, secret: userSecret.base32, verified: false });
+    await usersCollection.insertOne({ email, username, authKey, secret: userSecret.base32, verified: false });
+    await createEmailVerificationAction(username, email);
 
     return res.status(200).json({ message: "Account created" });
   }
   catch (e) {
+    console.log(e)
     Logger.error("There was an error while creating a user");
     Logger.error(e);
   }
@@ -66,9 +71,12 @@ export const deleteUser = async (req: Request, res: Response) => {
   const { username }: { username: string } = req.body;
 
   const usersCollection = getCollection("users");
-  if (!usersCollection) return res.status(500).json({ message: "Internal Server Error" }); // TODO: Later use a custom logger as well
+  if (!usersCollection) {
+    Logger.error("Database - Failed to get users collection");
+    return res.status(500).json({ message: "Internal Server Error" });
+  }
 
-  const user = await usersCollection.findOne({ username });
+  const user: Cloud.User = await usersCollection.findOne({ username }) as Cloud.User;
 
   if (!user) return res.status(404).json({ message: "User not found" });
 
