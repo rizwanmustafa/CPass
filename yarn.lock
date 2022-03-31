@@ -92,9 +92,9 @@ __metadata:
   languageName: node
   linkType: hard
 
-"cloudpasswordmanager@workspace:.":
+"cpass@workspace:.":
   version: 0.0.0-use.local
-  resolution: "cloudpasswordmanager@workspace:."
+  resolution: "cpass@workspace:."
   dependencies:
     "@types/qrcode": 1.4.2
     "@types/speakeasy": 2.0.7

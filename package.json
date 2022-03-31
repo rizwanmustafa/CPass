@@ -1,7 +1,7 @@
 {
-  "name": "cloudpasswordmanager",
+  "name": "cpass",
   "version": "1.0.0",
-  "repository": "git@github.com:rizwanmustafa/CloudPasswordManager.git",
+  "repository": "git@github.com:rizwanmustafa/cpass.git",
   "author": "Rizwan Mustafa <rizwanmustafa0000@gmail.com>",
   "license": "GPL-3.0",
   "private": true,
