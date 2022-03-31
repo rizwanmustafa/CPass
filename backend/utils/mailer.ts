@@ -86,7 +86,7 @@ export const send2faMail = async (email: string, base32Secret: string, qrCodeSVG
     callback: (error, info) => {
       if (error) {
         Logger.error(`Error while sending 2FA email to ${email}`);
-        Logger.error(`Error Message: ${error.message} Error Stack: ${error.stack}`);
+        Logger.error(`Error Message: ${error.message}\nError Stack: ${error.stack}`);
       }
       if (info)
         Logger.success(`2FA Email sent successfully to ${email}`);

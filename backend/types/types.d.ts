@@ -8,8 +8,10 @@ export interface User {
   authKey: string;
   secret: string;
   verfied: boolean;
-  links?: Record<string, { type: string; email?: string }>
+  links?: Record<string, UserAction>;
 }
+
+export interface UserAction { type: string; used: boolean; email?: string }
 
 export interface MailCallback { (error: Error | null, info: any): any; }
 export interface MailQueueItem {
