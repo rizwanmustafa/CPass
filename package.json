@@ -8,6 +8,7 @@
   "packageManager": "yarn@3.2.0",
   "scripts": {
     "start": "concurrently \"cd frontend && yarn start\" \"cd backend && yarn start\"",
+    "dev": "concurrently \"cd frontend && yarn start\" \"cd backend && yarn dev\"",
     "install:all": "yarn install && cd frontend && yarn install && cd ../backend && yarn install"
   },
   "devDependencies": {
