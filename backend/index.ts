@@ -10,6 +10,7 @@ import Logger from "./utils/logger";
 // Import routes
 import { router as UserRouter } from "./routes/user";
 import { router as ActionsRouter } from "./routes/actions";
+import { validateEnvironmentVariables } from "./utils/misc.js";
 
 
 const app = express();
@@ -49,12 +50,14 @@ app.use("*", (_req, res) => {
 const SERVER_PORT = process.env.SERVER_PORT ?? 5005;
 
 const bootServer = async () => {
+  if (!validateEnvironmentVariables()) process.exit(1);
+
   await connectToDB();
+
   app.listen(SERVER_PORT)
     .on("error", (error) => {
       Logger.error("Error while starting the server");
       Logger.error(error.message);
-      Logger.error("Exiting the server with code 1");
       process.exit(1);
     });
   Logger.success(`The server has started listening on port ${SERVER_PORT}`);
@@ -63,15 +66,17 @@ const bootServer = async () => {
 
 let cleaningUp = false;
 
-const cleanUpServer = () => {
+const cleanUpServer = (e: number) => {
   if (cleaningUp) return;
   cleaningUp = true;
-  Logger.info("Exiting server due to manual termination with code 0");
+  if (e === 0) Logger.info(`Exiting server due to manual termination with code 0`);
+  else Logger.error(`Exiting the server with code ${e.toString()}`);
   disconnctFromDB();
-  process.exit(0);
+  process.exit(e);
 }
 
 process.on("exit", cleanUpServer);
+
 process.on("SIGINT", cleanUpServer);
 process.on("SIGTERM", cleanUpServer);
 process.on("SIGUSER1", cleanUpServer);
