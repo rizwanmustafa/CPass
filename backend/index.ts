@@ -11,14 +11,17 @@ import Logger from "./utils/logger";
 import { router as UserRouter } from "./routes/user";
 import { router as ActionsRouter } from "./routes/actions";
 import { validateEnvironmentVariables } from "./utils/misc.js";
+import { format as dateFormat } from "date-fns";
 
 
 const app = express();
 let requestsHandled = 0;
 const startDate = new Date();
 
+morgan.token("date", () => dateFormat(new Date(), "dd-MMM-yyyy HH:mm:ss:SSS"));
+
 // Middlewares
-app.use(morgan('combined'));
+app.use(morgan(":date[clf]\t:method :url :status :res[content-length] - :response-time ms"));
 
 app.use(cors());
 
@@ -68,13 +71,14 @@ const bootServer = async () => {
 let cleaningUp = false;
 
 const cleanUpServer = (e: number) => {
+  Logger.info("Started cleaning up server for closing");
   if (cleaningUp) return;
   cleaningUp = true;
 
+  disconnectFromDB();
+
   if (e === 0) Logger.info(`Exiting server due to manual termination with code 0`);
   else Logger.error(`Exiting the server with code ${e.toString()}`);
-
-  disconnectFromDB();
 
   process.exit(e);
 }
