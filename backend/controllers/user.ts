@@ -56,7 +56,7 @@ export const createUser = async (req: Request, res: Response) => {
     if (actionID === "") return res.status(500).json({ message: "Internal Server Error" });
 
     const verificationLink = `${process.env.BASE_URL}/actions?username=${username}&link=${actionID}`;
-    console.log(verificationLink); // TODO: Remove this line
+    if (process.env.MODE === "dev") console.log(verificationLink);
     sendSignUpMail(email, userSecret.base32, qrCode, verificationLink);
 
 
@@ -64,9 +64,7 @@ export const createUser = async (req: Request, res: Response) => {
   }
   catch (e) {
     Logger.error("Error while creating a user");
-
-    if (e instanceof Error) Logger.error(e.message);
-    else Logger.error(e);
+    Logger.error(e);
 
     return res.status(500).json({ message: "Internal Server Error" });
   }

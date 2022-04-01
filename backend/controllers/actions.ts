@@ -73,8 +73,7 @@ export const handleEmailVerificationAction = async (
   }
   catch (e) {
     Logger.error(`User actions handling - Error while handling email verification action`);
-    if (e instanceof Error) Logger.error(`Error Message: ${e.message}\nError Stack: ${e.stack}`);
-    else Logger.error(e)
+    Logger.error(e);
 
     return res.status(500).json({ message: "Internal Server Error" });
   }
@@ -114,8 +113,7 @@ export const createEmailVerificationAction = async (username: string, email: str
     return actionID;
   }
   catch (e) {
-    if (e instanceof Error) Logger.error(e.message);
-    else Logger.error(e);
+    Logger.error(e);
 
     return "";
   }

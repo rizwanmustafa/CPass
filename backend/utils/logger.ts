@@ -78,7 +78,12 @@ const logger = createLogger({
 });
 
 const Logger = {
-  error: (message: string): WinstonLogger => logger.error(message),
+  error: (e: string | Error): WinstonLogger => {
+    if (e instanceof Error)
+      return logger.error(`Error Message: ${e.message}\nError Stack: ${e.stack}`);
+    else
+      return logger.error(e);
+  },
   warning: (message: string): WinstonLogger => logger.warning(message),
   info: (message: string): WinstonLogger => logger.info(message),
   success: (message: string): WinstonLogger => logger.log("success", message),
