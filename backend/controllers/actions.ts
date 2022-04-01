@@ -49,9 +49,9 @@ export const handleEmailVerificationAction = async (
   userCollection: Collection<Document>,
   res: Response
 ) => {
-  if (action.used) return res.json({ message: "Action has expired" });
-
   try {
+    if (action.used) return res.json({ message: "Action has expired" });
+
     if (user.email === action.email) {
       const actionIndex = user.actions?.findIndex(a => a.link === actionID);
       if (actionIndex === -1) { return res.status(400).json({ message: "Action not found" }); }
@@ -67,12 +67,12 @@ export const handleEmailVerificationAction = async (
       );
     }
     else
-      Logger.warning("User actions handling - Email verification action used on wrong email");
+      Logger.warning("Email verification action used on wrong email");
 
     return res.status(200).json({ message: "Email verified!" });
   }
   catch (e) {
-    Logger.error(`User actions handling - Error while handling email verification action`);
+    Logger.error(`Error while handling email verification action`);
     Logger.error(e);
 
     return res.status(500).json({ message: "Internal Server Error" });
@@ -113,6 +113,7 @@ export const createEmailVerificationAction = async (username: string, email: str
     return actionID;
   }
   catch (e) {
+    Logger.error(`Error while creating email verification action`);
     Logger.error(e);
 
     return "";

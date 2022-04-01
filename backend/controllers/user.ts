@@ -72,19 +72,27 @@ export const createUser = async (req: Request, res: Response) => {
 
 
 export const deleteUser = async (req: Request, res: Response) => {
-  const { username }: { username: string } = req.body;
+  try {
+    const username: string = req.body.username;
 
-  const usersCollection = getCollection("users");
-  if (!usersCollection) {
-    Logger.error("Database - Failed to get users collection");
+    const usersCollection = getCollection("users");
+    if (!usersCollection) {
+      Logger.error("Database - Failed to get users collection");
+      return res.status(500).json({ message: "Internal Server Error" });
+    }
+
+    const user: User = await usersCollection.findOne({ username }) as User;
+
+    if (!user) return res.status(404).json({ message: "User not found" });
+
+    usersCollection.deleteOne({ _id: user._id });
+
+    return res.status(200).json({ message: "User deleted" });
+  }
+  catch (e) {
+    Logger.error("Error while deleting a user");
+    Logger.error(e);
+
     return res.status(500).json({ message: "Internal Server Error" });
   }
-
-  const user: User = await usersCollection.findOne({ username }) as User;
-
-  if (!user) return res.status(404).json({ message: "User not found" });
-
-  usersCollection.deleteOne({ _id: user._id });
-
-  return res.status(200).json({ message: "User deleted" });
 }
