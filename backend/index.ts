@@ -4,7 +4,7 @@ import express from "express";
 import cors from "cors";
 import morgan from "morgan";
 
-import { connectToDB, disconnctFromDB } from "./db.js";
+import { dbInit, connectToDB, disconnectFromDB } from "./db.js";
 import Logger from "./utils/logger";
 
 // Import routes
@@ -52,14 +52,15 @@ const SERVER_PORT = process.env.SERVER_PORT ?? 5005;
 const bootServer = async () => {
   if (!validateEnvironmentVariables()) process.exit(1);
 
+  await dbInit();
   await connectToDB();
 
-  app.listen(SERVER_PORT)
-    .on("error", (error) => {
-      Logger.error("Error while starting the server");
-      Logger.error(error.message);
-      process.exit(1);
-    });
+  app.listen(SERVER_PORT).on("error", (error) => {
+    Logger.error("Error while starting the server");
+    Logger.error(error.message);
+    process.exit(1);
+  });
+
   Logger.success(`The server has started listening on port ${SERVER_PORT}`);
   Logger.success(`Server: http://localhost:${SERVER_PORT}`);
 };
@@ -69,9 +70,12 @@ let cleaningUp = false;
 const cleanUpServer = (e: number) => {
   if (cleaningUp) return;
   cleaningUp = true;
+
   if (e === 0) Logger.info(`Exiting server due to manual termination with code 0`);
   else Logger.error(`Exiting the server with code ${e.toString()}`);
-  disconnctFromDB();
+
+  disconnectFromDB();
+
   process.exit(e);
 }
 

@@ -2,20 +2,30 @@ import { Db, MongoClient } from "mongodb";
 import "dotenv/config";
 import Logger from "./utils/logger";
 
+let client: undefined | MongoClient;
+let DB: undefined | Db;
 const { DB_URI, DB_NAME } = process.env;
 
-if (DB_URI === undefined || DB_NAME === undefined) {
-  Logger.error("Invalid values for DB configuration. Exiting with code 1");
-  process.exit(1);
+
+export const dbInit = async () => {
+  try {
+    client = new MongoClient(DB_URI as string, { connectTimeoutMS: 10000 });
+    return true;
+  }
+  catch (e) {
+    Logger.error("DB initialization failed!");
+    Logger.error(e);
+    return false;
+  }
 }
-
-
-const client = new MongoClient(DB_URI, { connectTimeoutMS: 10000 });
-
-let DB: undefined | Db;
 
 export const connectToDB = async () => {
   Logger.info("Started connecting to database...");
+
+  if (!client) {
+    Logger.error("Database client has not yet been intialized. Intialize it first.");
+    return;
+  }
 
   try {
     await client.connect();
@@ -33,9 +43,18 @@ export const connectToDB = async () => {
 
 };
 
-export const disconnctFromDB = () => {
-  if (!DB) { return }
+export const disconnectFromDB = () => {
+  if (!DB) {
+    Logger.error("A database connection has not yet been established. Establish a connection first.");
+    return;
+  }
 
+  if (!client) {
+    Logger.error("Database client has not yet been intialized. Intialize it first.");
+    return;
+  }
+
+  Logger.info("Started closing connection to database...");
   try {
     client.close();
     Logger.success(`Successfully closed connection to mongodb database: ${DB_NAME}`);
@@ -48,6 +67,7 @@ export const disconnctFromDB = () => {
 
 export const getCollection = (collectionName: string) => {
   if (!DB) {
+    Logger.error("A database connection has not yet been established. Establish a connection first.");
     return undefined;
   }
 
