@@ -24,6 +24,7 @@ setInterval(() => {
 }, 0);
 
 const sendMail = async (mailItem: MailQueueItem, tries: number) => {
+  Logger.info(`Trying to send mail to ${mailItem.mailOpts.to}`);
   mailItem.transport.sendMail(mailItem.mailOpts, (error, info) => {
     if (error) {
       Logger.error(`Sending mail to ${mailItem.mailOpts.to} failed. Try count: ${tries}.`);
@@ -59,11 +60,7 @@ const createTransport = (accessToken: GetAccessTokenResponse) => {
   return transport
 }
 
-// TODO: Create a queue for emails to send
-// TODO: Create a thread for sending emails
-
-
-export const send2faMail = async (email: string, base32Secret: string, qrCodeSVG: string) => {
+export const sendSignUpMail = async (email: string, base32Secret: string, qrCodeSVG: string, verficationLink: string) => {
   const accessToken = await oauth2Client.getAccessToken();
   const transport = createTransport(accessToken);
 
@@ -71,10 +68,12 @@ export const send2faMail = async (email: string, base32Secret: string, qrCodeSVG
     from: process.env.MAIL_USER as string,
     to: email,
     subject: "CPass 2FA Setup",
-    text: `Thanks for registering on CPass.\n
-    Please keep the QR code attached secure and use it for 2FA.\n
+    text: `Thanks for registering on CPass.\n\n
+    Please click on the following link to verify your email address: ${verficationLink}\n\n
+    You can use the QR code attached or the following secret key for 2FA:\n
+    Secret Key: ${base32Secret}\n
     It is recommended that you use an app like Google Authenticator for two factor authentication
-    You can also use the following secret key: ${base32Secret}\n`.replace(/\n\s+/g, "\n"),
+    `.replace(/\n\s+/g, "\n"),
     attachments: [
       { content: qrCodeSVG, filename: "qrcode.svg", contentType: "image/svg+xml", }
     ]

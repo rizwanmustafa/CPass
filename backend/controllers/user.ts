@@ -3,7 +3,7 @@ import speakeasy from "speakeasy";
 import qrcode from "qrcode";
 
 import { getCollection } from "../db";
-import { send2faMail } from "../utils/mailer";
+import { sendSignUpMail } from "../utils/mailer";
 import Logger from "../utils/logger";
 
 import { User } from "../types/types";
@@ -51,11 +51,14 @@ export const createUser = async (req: Request, res: Response) => {
     const userSecret = speakeasy.generateSecret({ name: `CPass ${email}` });
     const qrCode = await qrcode.toString(userSecret.otpauth_url as string, { type: "svg" });
 
-    // TODO: Send a link to first verify their email address
-    send2faMail(email, userSecret.base32, qrCode);
-
     await usersCollection.insertOne({ email, username, authKey, secret: userSecret.base32, emailVerified: false });
-    await createEmailVerificationAction(username, email);
+    const actionID = await createEmailVerificationAction(username, email);
+    if (actionID === "") return res.status(500).json({ message: "Internal Server Error" });
+
+    const verificationLink = `${process.env.BASE_URL}/actions?username=${username}&link=${actionID}`;
+    console.log(verificationLink); // TODO: Remove this line
+    sendSignUpMail(email, userSecret.base32, qrCode, verificationLink);
+
 
     return res.status(200).json({ message: "Account created" });
   }

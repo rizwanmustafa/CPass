@@ -23,18 +23,18 @@ export const handleActions = async (req: Request, res: Response) => {
     return res.status(400).json({ message: "User not found" });
   }
 
-  if (!user.actions || !user.actions[link]) {
+  const action = user.actions?.find(a => a.link === link);
+
+  if (!user.actions || !action) {
     Logger.warning("User actions handling - Given link does not exist on user");
     return res.status(400).json({ message: "Given link does not exist on user" });
   }
 
-  const linkData = user.actions[link];
-
-  if (linkData.type === "emailVerification")
-    return handleEmailVerificationAction(user, link, linkData, usersCollection, res);
-  else{
+  if (action.type === "emailVerification")
+    return handleEmailVerificationAction(user, link, action, usersCollection, res);
+  else {
     Logger.error("Unknown action type");
-    return res.status(400).json({ message: "Unknown action type" });
+    return res.status(500).json({ message: "Internal Server Error" });
   }
 
 };
@@ -49,15 +49,27 @@ export const handleEmailVerificationAction = async (
   userCollection: Collection<Document>,
   res: Response
 ) => {
-  if (action.used) return;
+  if (action.used) return res.json({ message: "Action has expired" });
 
   try {
-    if (user.email === action.email)
-      await userCollection.updateOne({ username: user.username }, { $set: { [`actions.${actionID}.used`]: true, "emailVerified": true } });
+    if (user.email === action.email) {
+      const actionIndex = user.actions?.findIndex(a => a.link === actionID);
+      if (actionIndex === -1) { return res.status(400).json({ message: "Action not found" }); }
+
+      await userCollection.updateOne(
+        { username: user.username },
+        {
+          $set: {
+            [`actions.${actionIndex}.used`]: true,
+            "emailVerified": true
+          }
+        }
+      );
+    }
     else
       Logger.warning("User actions handling - Email verification action used on wrong email");
 
-    return res.status(200).json({ message: "Email verification action used successfully" });
+    return res.status(200).json({ message: "Email verified!" });
   }
   catch (e) {
     Logger.error(`User actions handling - Error while handling email verification action`);
@@ -69,43 +81,42 @@ export const handleEmailVerificationAction = async (
 }
 
 // Create actions
-export const createEmailVerificationAction = async (username: string, email: string): Promise<boolean> => {
+export const createEmailVerificationAction = async (username: string, email: string): Promise<string> => {
   try {
     const usersCollection = getCollection("users");
     if (!usersCollection) {
       Logger.error("Database - Failed to get users collection");
-      return false;
+      return "";
     }
 
     const user: User = await usersCollection.findOne({ username }) as User;
     if (!user) {
       Logger.error("Create email verification action called on non-existent user");
-      return false;
+      return "";
     }
 
-    if (!user.actions) user.actions = {};
+    if (!user.actions) user.actions = [];
 
-    let randomID = genRandomString(32);
-    while (user?.actions?.[randomID]) {
-      randomID = genRandomString(32);
+    let actionID = genRandomString(32);
+    while (user?.actions?.find(a => a.link === actionID)) {
+      actionID = genRandomString(32);
     }
 
-    await usersCollection.updateOne({ username }, {
-      $set:
-      {
-        actions: {
-          ...user.actions,
-          [randomID]: { type: "emailVerification", email, used: false }
-        }
-      }
-    });
+    const emailAction: UserAction = {
+      type: "emailVerification",
+      used: false,
+      link: actionID,
+      email,
+    }
 
-    return true;
+    await usersCollection.updateOne({ username }, { $push: { actions: emailAction } });
+
+    return actionID;
   }
   catch (e) {
     if (e instanceof Error) Logger.error(e.message);
     else Logger.error(e);
 
-    return false;
+    return "";
   }
 };
