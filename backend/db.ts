@@ -1,8 +1,8 @@
 import { Db, MongoClient } from "mongodb";
 import Logger from "./utils/logger";
 
-let client: undefined | MongoClient;
-let DB: undefined | Db;
+let client: MongoClient | undefined;
+let DB: Db | undefined;
 const { DB_URI, DB_NAME } = process.env;
 
 
@@ -19,7 +19,7 @@ export const dbInit = async () => {
   }
 };
 
-export const connectToDB = async () => {
+export const connectToDB = async (): Promise<boolean> => {
   Logger.info("Started connecting to database...");
 
   if (!client) {
@@ -30,12 +30,12 @@ export const connectToDB = async () => {
       process.exit(1);
     }
   }
-  if (!client) return; // This code shouldn't be executed because we already take care of it in the previous if statement
 
   try {
-    await client.connect();
-    DB = client.db(DB_NAME);
+    await (client as MongoClient).connect();
+    DB = (client as MongoClient).db(DB_NAME);
     Logger.success(`Successfully connected to mongodb database: ${DB_NAME}`);
+    return true;
   }
   catch (error) {
     Logger.error(error);
@@ -57,13 +57,16 @@ export const disconnectFromDB = async () => {
   }
 };
 
-export const getCollection = (collectionName: string) => {
+export const getCollection = async (collectionName: string) => {
   if (!DB) {
-    Logger.error("A database connection has not yet been established. Establish a connection first.");
-    return undefined;
+    Logger.error("A database connection has not yet been established. Establishing it automatically...");
+    if (await connectToDB() === false) {
+      Logger.error("Automatic database connection initialization failed! Exiting the server with code 1");
+      process.exit(1);
+    }
   }
 
-  return DB.collection(collectionName);
+  return (DB as Db).collection(collectionName);
 };
 
 export const getDB = () => DB;

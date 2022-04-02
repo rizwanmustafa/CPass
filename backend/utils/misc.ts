@@ -6,8 +6,7 @@ const charsLength = characters.length;
 
 export const isUsernameUsed = async (username: string): Promise<boolean> => {
   try {
-    const usersCollection = getCollection("users");
-    if (!usersCollection) return false;
+    const usersCollection = await getCollection("users");
 
     const user = await usersCollection.findOne({ username });
     return !!user;
@@ -20,8 +19,7 @@ export const isUsernameUsed = async (username: string): Promise<boolean> => {
 };
 
 export const isEmailUsed = async (email: string): Promise<boolean> => {
-  const usersCollection = getCollection("users");
-  if (!usersCollection) return false;
+  const usersCollection = await getCollection("users");
 
   const user = await usersCollection.findOne({ email });
   return !!user;

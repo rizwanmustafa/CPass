@@ -22,11 +22,7 @@ export const createUser = async (req: Request, res: Response) => {
     if (await isUsernameUsed(username)) return res.status(400).json({ message: "Username already in use" });
     if (await isEmailUsed(email)) return res.status(400).json({ message: "Email already in use" });
 
-    const usersCollection = getCollection("users");
-    if (!usersCollection) {
-      Logger.error("Database - Failed to get users collection");
-      return res.status(500).json({ message: "Internal Server Error" });
-    }
+    const usersCollection = await getCollection("users");
 
     const userSecret = speakeasy.generateSecret({ name: `CPass ${email}` });
     const qrCode = await qrcode.toString(userSecret.otpauth_url as string, { type: "svg" });
@@ -61,11 +57,7 @@ export const deleteUser = async (req: Request, res: Response) => {
   try {
     const username: string = req.body.username;
 
-    const usersCollection = getCollection("users");
-    if (!usersCollection) {
-      Logger.error("Database - Failed to get users collection");
-      return res.status(500).json({ message: "Internal Server Error" });
-    }
+    const usersCollection = await getCollection("users");
 
     const user: User = await usersCollection.findOne({ username }) as User;
 
@@ -86,4 +78,22 @@ export const deleteUser = async (req: Request, res: Response) => {
 export const usernameAvailable = async (req: Request, res: Response) => {
   const usernameAvailable = !(await isUsernameUsed(req.query.username as string));
   return res.json({ usernameAvailable: usernameAvailable });
+};
+
+export const authenticateUser = async (req: Request, res: Response) => {
+  const username = req.body.username as string;
+  const authKey = req.body.authKey as string;
+  const totpCode = req.body.totpCode as string;
+
+  const usersCollection = await getCollection("users");
+
+  const user: User = await usersCollection.findOne({ username }) as User;
+
+  if (!user) return res.status(404).json({ message: "User not found" });
+
+  const authCodeMatches = await bcrypt.compare(authKey, user.authKey);
+  const totpCodeMatches = speakeasy.totp.verify({ secret: user.secret, encoding: "base32", token: totpCode });
+
+  if (authCodeMatches && totpCodeMatches) return res.status(200).json({ message: "You are authenticated" }); // TODO: Send back a JWT 
+  else return res.status(401).json({ message: "You are not authenticated" }); // TODO: Send a login attempt email
 };

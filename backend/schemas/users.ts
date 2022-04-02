@@ -31,3 +31,12 @@ export const authKeySchema = joi.string()
     "string.min": "Auth key cannot be be smaller than 64 characters",
     "string.max": "Auth key cannot be larger than 128 characters"
   });
+
+export const totpCodeSchema = joi.string()
+  .length(6)
+  .regex(/^[0-9]{6}$/)
+  .required()
+  .messages({
+    "string.pattern.base": "Invalid totp code",
+    "string.length": "Invalid totp code. A totp code must be 6 digits long",
+  });

@@ -7,11 +7,7 @@ import { User, UserAction } from "../types/types";
 // Create actions
 export const createEmailVerificationAction = async (username: string, email: string): Promise<string> => {
   try {
-    const usersCollection = getCollection("users");
-    if (!usersCollection) {
-      Logger.error("Database - Failed to get users collection");
-      return "";
-    }
+    const usersCollection =  await getCollection("users");
 
     const user: User = await usersCollection.findOne({ username }) as User;
     if (!user) {

@@ -10,7 +10,7 @@ export const handleActions = async (req: Request, res: Response) => {
   const username: string = req.query.username as string;
   const link: string = req.query.link as string;
 
-  const usersCollection = getCollection("users");
+  const usersCollection = await getCollection("users");
   if (!usersCollection) {
     Logger.error("Database - Failed to get users collection");
     return false;
@@ -37,8 +37,6 @@ export const handleActions = async (req: Request, res: Response) => {
   }
 
 };
-
-
 
 // Handle custom actions
 export const handleEmailVerificationAction = async (
