@@ -57,8 +57,8 @@ const createTransport = (accessToken: GetAccessTokenResponse) => {
     socketTimeout: 15000,
   }) as nodemailer.TransportOptions);
 
-  return transport
-}
+  return transport;
+};
 
 export const sendSignUpMail = async (email: string, base32Secret: string, qrCodeSVG: string, verficationLink: string) => {
   const accessToken = await oauth2Client.getAccessToken();

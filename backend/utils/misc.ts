@@ -1,7 +1,7 @@
 import Logger from "./logger";
 import { getCollection } from "../db";
 
-const characters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
+const characters = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
 const charsLength = characters.length;
 
 export const isUsernameUsed = async (username: string): Promise<boolean> => {
@@ -17,7 +17,7 @@ export const isUsernameUsed = async (username: string): Promise<boolean> => {
     Logger.error(e);
     return true;
   }
-}
+};
 
 export const isEmailUsed = async (email: string): Promise<boolean> => {
   const usersCollection = getCollection("users");
@@ -25,16 +25,16 @@ export const isEmailUsed = async (email: string): Promise<boolean> => {
 
   const user = await usersCollection.findOne({ email });
   return !!user;
-}
+};
 
 
 export const genRandomString = (length: number) => {
-  let result = '';
+  let result = "";
   for (let i = 0; i < length; i++) {
     result += characters.charAt(Math.floor(Math.random() * charsLength));
   }
   return result;
-}
+};
 
 export const validateEnvironmentVariables = (): boolean => {
   // TODO: Refactor this code later creating another function that takes in a key aka environement variable and checks if it is defined
@@ -99,4 +99,4 @@ export const validateEnvironmentVariables = (): boolean => {
     return false;
   }
   return true;
-}
+};

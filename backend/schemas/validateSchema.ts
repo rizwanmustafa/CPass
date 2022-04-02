@@ -9,6 +9,6 @@ export const validateSchema = (value: any, schema: Schema, res: Response) => {
   }
 
   return true;
-}
+};
 
 export default validateSchema;

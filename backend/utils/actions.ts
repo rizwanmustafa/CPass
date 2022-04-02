@@ -31,14 +31,14 @@ export const createEmailVerificationAction = async (username: string, email: str
       used: false,
       link: actionID,
       email,
-    }
+    };
 
     await usersCollection.updateOne({ username }, { $push: { actions: emailAction } });
 
     return actionID;
   }
   catch (e) {
-    Logger.error(`Error while creating email verification action`);
+    Logger.error("Error while creating email verification action");
     Logger.error(e);
 
     return "";

@@ -73,10 +73,10 @@ export const handleEmailVerificationAction = async (
 
   }
   catch (e) {
-    Logger.error(`Error while handling email verification action`);
+    Logger.error("Error while handling email verification action");
     Logger.error(e);
 
     return res.status(500).json({ message: "Internal Server Error" });
   }
-}
+};
 

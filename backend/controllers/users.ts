@@ -10,10 +10,6 @@ import { User } from "../types/types";
 import { createEmailVerificationAction } from "../utils/actions";
 import { isUsernameUsed, isEmailUsed } from "../utils/misc";
 
-// Utility functions
-
-
-
 // Controller functions
 export const createUser = async (req: Request, res: Response) => {
   try {
@@ -22,7 +18,7 @@ export const createUser = async (req: Request, res: Response) => {
       email: string,
       username: string,
       authKey: string
-    };
+    }
 
     const { email, username, authKey }: UserData = req.body;
 
@@ -81,9 +77,9 @@ export const deleteUser = async (req: Request, res: Response) => {
 
     return res.status(500).json({ message: "Internal Server Error" });
   }
-}
+};
 
 export const usernameAvailable = async (req: Request, res: Response) => {
-  const usernameAvailable = !(await isUsernameUsed(req.query.username as string))
+  const usernameAvailable = !(await isUsernameUsed(req.query.username as string));
   return res.json({ usernameAvailable: usernameAvailable });
-}
+};

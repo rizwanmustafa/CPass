@@ -20,7 +20,7 @@ const buildApp = (): Express => {
   server.use(express.json());
 
   server.use((_req, _res, next) => {
-    requestsHandled += 1
+    requestsHandled += 1;
     next();
   });
 
@@ -31,7 +31,7 @@ const buildApp = (): Express => {
     });
   });
 
-  return server
-}
+  return server;
+};
 
-export default buildApp
+export default buildApp;

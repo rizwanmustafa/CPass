@@ -31,15 +31,15 @@ const coloredOutputFormat = format.printf((log) => {
   let color = infoColor;
 
   switch (log.level) {
-    case "error":
-      color = errorColor;
-      break;
-    case "warning":
-      color = warningColor;
-      break;
-    case "success":
-      color = successColor;
-      break;
+  case "error":
+    color = errorColor;
+    break;
+  case "warning":
+    color = warningColor;
+    break;
+  case "success":
+    color = successColor;
+    break;
   }
 
   return `${log.timestamp}\t${color(log.message)}`;
@@ -87,6 +87,6 @@ const Logger = {
   warning: (message: string): WinstonLogger => logger.warning(message),
   info: (message: string): WinstonLogger => logger.info(message),
   success: (message: string): WinstonLogger => logger.log("success", message),
-}
+};
 
 export default Logger;

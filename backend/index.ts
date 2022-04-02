@@ -43,7 +43,7 @@ const cleanUpServer = async (e: number) => {
   Logger.error(`Exiting the server with code ${e.toString()}`);
 
   process.exit(e);
-}
+};
 
 // Add routes
 app.use("/users", UserRouter);

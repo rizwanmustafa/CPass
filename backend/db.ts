@@ -17,7 +17,7 @@ export const dbInit = async () => {
     Logger.error(e);
     return false;
   }
-}
+};
 
 export const connectToDB = async () => {
   Logger.info("Started connecting to database...");
@@ -41,7 +41,7 @@ export const connectToDB = async () => {
     Logger.error(error);
     Logger.error("Failed to connect to database. Exiting with code 1");
     process.exit(1);
-  };
+  }
 
 };
 
@@ -49,7 +49,7 @@ export const disconnectFromDB = async () => {
   Logger.info("Started closing connection to database...");
   try {
     if (client) client.close();
-    Logger.success(`Closed connection to mongodb database`);
+    Logger.success("Closed connection to mongodb database");
   }
   catch (e) {
     Logger.error("Error while closing the connection to mongodb database");
@@ -64,6 +64,6 @@ export const getCollection = (collectionName: string) => {
   }
 
   return DB.collection(collectionName);
-}
+};
 
 export const getDB = () => DB;
