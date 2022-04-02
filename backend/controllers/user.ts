@@ -7,25 +7,9 @@ import { sendSignUpMail } from "../utils/mailer";
 import Logger from "../utils/logger";
 
 import { User } from "../types/types";
-import { createEmailVerificationAction } from "./actions";
+import { createEmailVerificationAction } from "../utils/actions";
+import { usernameUsed, emailUsed } from "../utils/misc";
 
-// Utility functions
-
-const usernameUsed = async (username: string): Promise<boolean> => {
-  const usersCollection = getCollection("users");
-  if (!usersCollection) return false;
-
-  const user = await usersCollection.findOne({ username });
-  return !!user;
-}
-
-const emailUsed = async (email: string): Promise<boolean> => {
-  const usersCollection = getCollection("users");
-  if (!usersCollection) return false;
-
-  const user = await usersCollection.findOne({ email });
-  return !!user;
-}
 
 // Controller functions
 export const createUser = async (req: Request, res: Response) => {
@@ -69,7 +53,6 @@ export const createUser = async (req: Request, res: Response) => {
     return res.status(500).json({ message: "Internal Server Error" });
   }
 };
-
 
 export const deleteUser = async (req: Request, res: Response) => {
   try {

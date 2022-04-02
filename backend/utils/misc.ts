@@ -1,7 +1,24 @@
 import Logger from "./logger";
+import { getCollection } from "../db";
 
 const characters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
 const charsLength = characters.length;
+
+export const usernameUsed = async (username: string): Promise<boolean> => {
+  const usersCollection = getCollection("users");
+  if (!usersCollection) return false;
+
+  const user = await usersCollection.findOne({ username });
+  return !!user;
+}
+
+export const emailUsed = async (email: string): Promise<boolean> => {
+  const usersCollection = getCollection("users");
+  if (!usersCollection) return false;
+
+  const user = await usersCollection.findOne({ email });
+  return !!user;
+}
 
 export const genRandomString = (length: number) => {
   let result = '';
@@ -11,7 +28,7 @@ export const genRandomString = (length: number) => {
   return result;
 }
 
-export const validateEnvironmentVariables = () : boolean => {
+export const validateEnvironmentVariables = (): boolean => {
   // TODO: Refactor this code later creating another function that takes in a key aka environement variable and checks if it is defined
   let failedCount = 0;
 
