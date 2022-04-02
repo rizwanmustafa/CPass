@@ -7,7 +7,7 @@ import { dbInit, connectToDB, disconnectFromDB } from "./db.js";
 import Logger from "./utils/logger";
 
 // Import routes
-import { router as UserRouter } from "./routes/user";
+import { router as UserRouter } from "./routes/users";
 import { router as ActionsRouter } from "./routes/actions";
 import { validateEnvironmentVariables } from "./utils/misc.js";
 

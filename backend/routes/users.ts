@@ -1,6 +1,6 @@
 import express from "express";
-import { usernameSchema, emailSchema, authKeySchema } from "../schemas/user";
-import { createUser, deleteUser } from "../controllers/user";
+import { usernameSchema, emailSchema, authKeySchema } from "../schemas/users";
+import { createUser, deleteUser, usernameAvailable} from "../controllers/users";
 import validateSchema from "../schemas/validateSchema";
 
 export const router = express.Router();
@@ -21,4 +21,16 @@ router.post(
 router.delete(
   "/delete",
   deleteUser
+);
+
+router.get(
+  "/usernameAvailable",
+  (req, res, next) => {
+    const { username } = req.query;
+
+    if (!validateSchema(username, usernameSchema, res)) return;
+
+    next();
+  },
+  usernameAvailable
 );

@@ -8,7 +8,10 @@ import Logger from "../utils/logger";
 
 import { User } from "../types/types";
 import { createEmailVerificationAction } from "../utils/actions";
-import { usernameUsed, emailUsed } from "../utils/misc";
+import { isUsernameUsed, isEmailUsed } from "../utils/misc";
+
+// Utility functions
+
 
 
 // Controller functions
@@ -23,8 +26,8 @@ export const createUser = async (req: Request, res: Response) => {
 
     const { email, username, authKey }: UserData = req.body;
 
-    if (await usernameUsed(username)) return res.status(400).json({ message: "Username already in use" });
-    if (await emailUsed(email)) return res.status(400).json({ message: "Email already in use" });
+    if (await isUsernameUsed(username)) return res.status(400).json({ message: "Username already in use" });
+    if (await isEmailUsed(email)) return res.status(400).json({ message: "Email already in use" });
 
     const usersCollection = getCollection("users");
     if (!usersCollection) {
@@ -78,4 +81,9 @@ export const deleteUser = async (req: Request, res: Response) => {
 
     return res.status(500).json({ message: "Internal Server Error" });
   }
+}
+
+export const usernameAvailable = async (req: Request, res: Response) => {
+  const usernameAvailable = !(await isUsernameUsed(req.query.username as string))
+  return res.json({ usernameAvailable: usernameAvailable });
 }

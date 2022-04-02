@@ -4,21 +4,29 @@ import { getCollection } from "../db";
 const characters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
 const charsLength = characters.length;
 
-export const usernameUsed = async (username: string): Promise<boolean> => {
-  const usersCollection = getCollection("users");
-  if (!usersCollection) return false;
+export const isUsernameUsed = async (username: string): Promise<boolean> => {
+  try {
+    const usersCollection = getCollection("users");
+    if (!usersCollection) return false;
 
-  const user = await usersCollection.findOne({ username });
-  return !!user;
+    const user = await usersCollection.findOne({ username });
+    return !!user;
+  }
+  catch (e) {
+    Logger.error("Could not check if username is used");
+    Logger.error(e);
+    return true;
+  }
 }
 
-export const emailUsed = async (email: string): Promise<boolean> => {
+export const isEmailUsed = async (email: string): Promise<boolean> => {
   const usersCollection = getCollection("users");
   if (!usersCollection) return false;
 
   const user = await usersCollection.findOne({ email });
   return !!user;
 }
+
 
 export const genRandomString = (length: number) => {
   let result = '';

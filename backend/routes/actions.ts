@@ -1,7 +1,7 @@
 import express from "express";
 import validateSchema from "../schemas/validateSchema";
 import { actionLinkSchema } from "../schemas/actions";
-import { usernameSchema } from "../schemas/user";
+import { usernameSchema } from "../schemas/users";
 import { handleActions } from "../controllers/actions";
 
 export const router = express.Router();
