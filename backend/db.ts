@@ -1,5 +1,4 @@
 import { Db, MongoClient } from "mongodb";
-import "dotenv/config";
 import Logger from "./utils/logger";
 
 let client: undefined | MongoClient;
@@ -47,25 +46,10 @@ export const connectToDB = async () => {
 };
 
 export const disconnectFromDB = async () => {
-  if (!client) {
-    Logger.error("Database client has not yet been intialized. Intializing it automatically.");
-    if (await dbInit() === false) {
-      Logger.error("Automatic database intialization failed!");
-      Logger.error("Exiting the server with code 1");
-      process.exit(1);
-    }
-  }
-  if (!client) return; // This code shouldn't be executed because we already take care of it in the previous if statement
-
-  if (!DB) {
-    Logger.error("A database connection has not yet been established. Establish a connection first.");
-    return;
-  }
-
   Logger.info("Started closing connection to database...");
   try {
-    client.close();
-    Logger.success(`Successfully closed connection to mongodb database: ${DB_NAME}`);
+    if (client) client.close();
+    Logger.success(`Closed connection to mongodb database`);
   }
   catch (e) {
     Logger.error("Error while closing the connection to mongodb database");
