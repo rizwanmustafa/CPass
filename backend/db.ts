@@ -10,10 +10,11 @@ const { DB_URI, DB_NAME } = process.env;
 export const dbInit = async () => {
   try {
     client = new MongoClient(DB_URI as string, { connectTimeoutMS: 10000 });
+    Logger.success("DB client initialized");
     return true;
   }
   catch (e) {
-    Logger.error("DB initialization failed!");
+    Logger.error("DB client initialization failed!");
     Logger.error(e);
     return false;
   }
@@ -23,9 +24,14 @@ export const connectToDB = async () => {
   Logger.info("Started connecting to database...");
 
   if (!client) {
-    Logger.error("Database client has not yet been intialized. Intialize it first.");
-    return;
+    Logger.error("Database client has not yet been intialized. Intializing it automatically.");
+    if (await dbInit() === false) {
+      Logger.error("Automatic database intialization failed!");
+      Logger.error("Exiting the server with code 1");
+      process.exit(1);
+    }
   }
+  if (!client) return; // This code shouldn't be executed because we already take care of it in the previous if statement
 
   try {
     await client.connect();
@@ -33,24 +39,26 @@ export const connectToDB = async () => {
     Logger.success(`Successfully connected to mongodb database: ${DB_NAME}`);
   }
   catch (error) {
-    if (typeof error.message === "string" || error.message instanceof String) {
-      Logger.error(error.message);
-    }
-    else Logger.error(error);
+    Logger.error(error);
     Logger.error("Failed to connect to database. Exiting with code 1");
     process.exit(1);
   };
 
 };
 
-export const disconnectFromDB = () => {
+export const disconnectFromDB = async () => {
+  if (!client) {
+    Logger.error("Database client has not yet been intialized. Intializing it automatically.");
+    if (await dbInit() === false) {
+      Logger.error("Automatic database intialization failed!");
+      Logger.error("Exiting the server with code 1");
+      process.exit(1);
+    }
+  }
+  if (!client) return; // This code shouldn't be executed because we already take care of it in the previous if statement
+
   if (!DB) {
     Logger.error("A database connection has not yet been established. Establish a connection first.");
-    return;
-  }
-
-  if (!client) {
-    Logger.error("Database client has not yet been intialized. Intialize it first.");
     return;
   }
 

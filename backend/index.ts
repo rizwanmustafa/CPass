@@ -70,12 +70,13 @@ const bootServer = async () => {
 
 let cleaningUp = false;
 
-const cleanUpServer = (e: number) => {
-  Logger.info("Started cleaning up server for closing");
+const cleanUpServer = async (e: number) => {
   if (cleaningUp) return;
   cleaningUp = true;
 
-  disconnectFromDB();
+  Logger.info("Started cleaning up server for closing");
+
+  await disconnectFromDB();
 
   if (e === 0) Logger.info(`Exiting server due to manual termination with code 0`);
   else Logger.error(`Exiting the server with code ${e.toString()}`);
