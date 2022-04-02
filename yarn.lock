@@ -92,21 +92,6 @@ __metadata:
   languageName: node
   linkType: hard
 
-"cpass@workspace:.":
-  version: 0.0.0-use.local
-  resolution: "cpass@workspace:."
-  dependencies:
-    "@types/qrcode": 1.4.2
-    "@types/speakeasy": 2.0.7
-    concurrently: 7.0.0
-    dotenv: 16.0.0
-    nodemailer: 6.7.3
-    qrcode: 1.5.0
-    speakeasy: 2.0.0
-    typescript: 4.6.3
-  languageName: unknown
-  linkType: soft
-
 "color-convert@npm:^2.0.1":
   version: 2.0.1
   resolution: "color-convert@npm:2.0.1"
@@ -140,6 +125,21 @@ __metadata:
   checksum: 1be78f24bf814f097adaf2e61a37563eb73f12272bbeda90e3e616a23525f793268e22a3c6aedf34e5bad44459f7c30ee053c617905416ba11ce2bee55f089a5
   languageName: node
   linkType: hard
+
+"cpass@workspace:.":
+  version: 0.0.0-use.local
+  resolution: "cpass@workspace:."
+  dependencies:
+    "@types/qrcode": 1.4.2
+    "@types/speakeasy": 2.0.7
+    concurrently: 7.0.0
+    dotenv: 16.0.0
+    nodemailer: 6.7.3
+    qrcode: 1.5.0
+    speakeasy: 2.0.0
+    typescript: 4.6.3
+  languageName: unknown
+  linkType: soft
 
 "date-fns@npm:^2.16.1":
   version: 2.28.0
