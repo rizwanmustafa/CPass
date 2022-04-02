@@ -5,16 +5,14 @@
   "license": "GPL-3.0",
   "private": true,
   "scripts": {
+    "watch": "yarn run gulp watch",
+    "build": "yarn run gulp build",
     "lint": "yarn run eslint \"./**/*.{ts,js}\"",
-    "build": "tsc --build --clean && tsc --build",
-    "start-build": "node ./build/index.js",
-    "lint-and-start": "concurrently \"yarn run lint\" \"yarn run start-build\"",
-    "dev": "tsc-watch --noClear -p ./tsconfig.json --onSuccess \"yarn run lint-and-start\"",
-    "start": "yarn build && yarn start-build"
+    "start": "node ./build/index.js",
+    "dev": "concurrently --kill-others \"yarn run watch\" \"nodemon ./build/index.js\""
   },
   "dependencies": {
     "chalk": "4.1.2",
-    "colors": "1.4.0",
     "cors": "2.8.5",
     "date-fns": "2.28.0",
     "dotenv": "16.0.0",
@@ -26,22 +24,27 @@
     "morgan": "1.10.0",
     "nodemailer": "6.7.3",
     "nodemon": "2.0.15",
-    "object-hash": "3.0.0",
     "qrcode": "1.5.0",
     "speakeasy": "2.0.0",
     "ts-node": "10.7.0",
-    "tsc-watch": "4.6.2",
     "winston": "3.6.0"
   },
   "devDependencies": {
+    "@dabh/eslint-config-populist": "5.0.0",
+    "@hapi/eslint-plugin": "5.1.0",
     "@types/cors": "2.8.12",
     "@types/express": "4.17.13",
+    "@types/gulp": "4.0.9",
     "@types/morgan": "1.9.3",
     "@types/nodemailer": "6.4.4",
     "@typescript-eslint/eslint-plugin": "latest",
     "@typescript-eslint/parser": "latest",
     "concurrently": "7.0.0",
     "eslint": "8.12.0",
+    "eslint-plugin-prettier": "4.0.0",
+    "gulp": "4.0.2",
+    "gulp-eslint-new": "1.4.2",
+    "gulp-typescript": "6.0.0-alpha.1",
     "typescript": "4.6.3"
   }
 }
