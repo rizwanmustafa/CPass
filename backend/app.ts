@@ -20,7 +20,6 @@ const buildApp = (): Express => {
   server.use(express.json());
 
   server.use((_req, _res, next) => {
-    console.log(requestsHandled);
     requestsHandled += 1
     next();
   });
