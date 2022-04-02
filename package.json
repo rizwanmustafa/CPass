@@ -8,7 +8,9 @@
   "packageManager": "yarn@3.2.0",
   "scripts": {
     "start": "concurrently --kill-others \"cd frontend && yarn start\" \"cd backend && yarn start\"",
-    "dev": "concurrently --kill-others \"cd frontend && yarn start\" \"cd backend && yarn dev\"",
+    "dev": "concurrently --kill-others \"yarn dev:fe\" \"yarn dev:be\"",
+    "dev:fe": "cd frontend && yarn start",
+    "dev:be": "cd backend && yarn dev",
     "install:all": "yarn install && cd frontend && yarn install && cd ../backend && yarn install"
   },
   "devDependencies": {

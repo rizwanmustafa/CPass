@@ -6,7 +6,7 @@ import validateSchema from "../schemas/validateSchema";
 export const router = express.Router();
 
 router.post(
-  "/",
+  "/signup",
   (req, res, next) => {
     const { email, username, authKey } = req.body;
     if (!validateSchema(username, usernameSchema, res)) return;
@@ -19,6 +19,6 @@ router.post(
 );
 
 router.delete(
-  "/",
+  "/delete",
   deleteUser
 );
