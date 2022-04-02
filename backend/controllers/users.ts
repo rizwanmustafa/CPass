@@ -1,6 +1,7 @@
 import { Request, Response } from "express";
 import speakeasy from "speakeasy";
 import qrcode from "qrcode";
+import bcrypt from "bcrypt";
 
 import { getCollection } from "../db";
 import { sendSignUpMail } from "../utils/mailer";
@@ -13,14 +14,10 @@ import { isUsernameUsed, isEmailUsed } from "../utils/misc";
 // Controller functions
 export const createUser = async (req: Request, res: Response) => {
   try {
-
-    type UserData = {
-      email: string,
-      username: string,
-      authKey: string
-    }
-
-    const { email, username, authKey }: UserData = req.body;
+    const email = req.body.email as string;
+    const username = req.body.username as string;
+    const authKey = req.body.authKey as string;
+    const newAuthKey = await bcrypt.hash(authKey, 10);
 
     if (await isUsernameUsed(username)) return res.status(400).json({ message: "Username already in use" });
     if (await isEmailUsed(email)) return res.status(400).json({ message: "Email already in use" });
@@ -34,7 +31,14 @@ export const createUser = async (req: Request, res: Response) => {
     const userSecret = speakeasy.generateSecret({ name: `CPass ${email}` });
     const qrCode = await qrcode.toString(userSecret.otpauth_url as string, { type: "svg" });
 
-    await usersCollection.insertOne({ email, username, authKey, secret: userSecret.base32, emailVerified: false });
+    await usersCollection.insertOne({
+      email,
+      username,
+      authKey: newAuthKey,
+      secret: userSecret.base32,
+      emailVerified: false
+    });
+
     const actionID = await createEmailVerificationAction(username, email);
     if (actionID === "") return res.status(500).json({ message: "Internal Server Error" });
 
