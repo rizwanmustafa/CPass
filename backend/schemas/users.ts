@@ -1,6 +1,7 @@
 import joi from "joi";
 
 export const usernameSchema = joi.string()
+  .label("Username")
   .min(4)
   .max(32)
   .regex(/^[0-9a-zA-Z]+$/)
@@ -8,10 +9,12 @@ export const usernameSchema = joi.string()
   .messages({
     "string.pattern.base":
       "Invalid Username. A username can only contain alphanumeric characters",
-    "string.max": "Username exceeds maximum of 16 characters",
+    "string.max": "Username cannot be larger than 32 characters",
+    "string.min": "Username cannot be smaller than 4 characters",
   });
 
 export const emailSchema = joi.string()
+  .label("Email address")
   .regex(/^(([^<>()[\]\\.,;:\s@"]+(\.[^<>()[\]\\.,;:\s@"]+)*)|(".+"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/
   )
   .min(3)
@@ -24,6 +27,7 @@ export const emailSchema = joi.string()
   });
 
 export const authKeySchema = joi.string()
+  .label("Auth key")
   .min(64)
   .max(128)
   .required()
@@ -33,6 +37,7 @@ export const authKeySchema = joi.string()
   });
 
 export const totpCodeSchema = joi.string()
+  .label("2FA code")
   .length(6)
   .regex(/^[0-9]{6}$/)
   .required()
