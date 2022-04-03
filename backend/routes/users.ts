@@ -1,6 +1,8 @@
 import express from "express";
-import { usernameSchema, emailSchema, authKeySchema, totpCodeSchema } from "../schemas/users";
+import { usernameSchema, emailSchema, authKeySchema, totpCodeSchema, userActionLinkSchema } from "../schemas/users";
 import { createUser, deleteUser, authenticateUser, usernameAvailable } from "../controllers/users";
+import { handleActions } from "../controllers/actions";
+
 import validateSchema from "../schemas/validateSchema";
 
 export const router = express.Router();
@@ -46,4 +48,18 @@ router.get(
     next();
   },
   usernameAvailable
+);
+
+router.get(
+  "/actions",
+  (req, res, next) => {
+    const username = req.query.username;
+    const actionLink = req.query.link;
+
+    if (!validateSchema(username, usernameSchema, res)) return;
+    if (!validateSchema(actionLink, userActionLinkSchema, res)) return;
+
+    next();
+  },
+  handleActions
 );

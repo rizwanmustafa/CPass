@@ -8,7 +8,7 @@ import { sendSignUpMail } from "../utils/mailer";
 import Logger from "../utils/logger";
 
 import { User } from "../types/types";
-import { createEmailVerificationAction } from "../utils/actions";
+import { createEmailVerificationAction } from "./actions";
 import { isUsernameUsed, isEmailUsed } from "../utils/misc";
 
 // Controller functions
@@ -38,7 +38,7 @@ export const createUser = async (req: Request, res: Response) => {
     const actionID = await createEmailVerificationAction(username, email);
     if (actionID === "") return res.status(500).json({ message: "Internal Server Error" });
 
-    const verificationLink = `${process.env.BASE_URL}/actions?username=${username}&link=${actionID}`;
+    const verificationLink = `${process.env.BASE_URL}/users/actions?username=${username}&link=${actionID}`;
     if (process.env.MODE === "dev") console.log(verificationLink);
     sendSignUpMail(email, userSecret.base32, qrCode, verificationLink);
 

@@ -1,9 +1,11 @@
 import { Request, Response } from "express";
 import { getCollection } from "../db";
+import { genRandomString } from "../utils/misc";
 import Logger from "../utils/logger";
 
-import { User, UserAction } from "../types/types"; // Find some way to use types without importing them
+import { User, UserAction } from "../types/types";
 import { Collection, Document } from "mongodb";
+import { userActionSchema } from "../schemas/users";
 
 // Handle actions
 export const handleActions = async (req: Request, res: Response) => {
@@ -78,3 +80,38 @@ export const handleEmailVerificationAction = async (
   }
 };
 
+export const createEmailVerificationAction = async (username: string, email: string): Promise<string> => {
+  try {
+    const usersCollection = await getCollection("users");
+
+    const user: User = await usersCollection.findOne({ username }) as User;
+    if (!user) {
+      Logger.error("Create email verification action called on non-existent user");
+      return "";
+    }
+
+    if (!user.actions) user.actions = [];
+
+    let actionID = genRandomString(32);
+    while (user?.actions?.find(a => a.link === actionID)) {
+      actionID = genRandomString(32);
+    }
+
+    const emailAction: UserAction = {
+      type: "emailVerification",
+      used: false,
+      link: actionID,
+      email,
+    };
+
+    await usersCollection.updateOne({ username }, { $push: { actions: emailAction } });
+
+    return actionID;
+  }
+  catch (e) {
+    Logger.error("Error while creating email verification action");
+    Logger.error(e);
+
+    return "";
+  }
+};

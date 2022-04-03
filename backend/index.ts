@@ -8,7 +8,6 @@ import Logger from "./utils/logger";
 
 // Import routes
 import { router as UserRouter } from "./routes/users";
-import { router as ActionsRouter } from "./routes/actions";
 import { validateEnvironmentVariables } from "./utils/misc.js";
 
 
@@ -47,7 +46,6 @@ const cleanUpServer = async (e: number) => {
 
 // Add routes
 app.use("/users", UserRouter);
-app.use("/actions", ActionsRouter);
 
 // Dynamic 404 Handling
 app.use("*", (_req, res) => res.status(404).json({ message: "Resource not found!" }));
