@@ -68,10 +68,10 @@ export const sendSignUpMail = async (email: string, base32Secret: string, qrCode
     from: process.env.MAIL_USER as string,
     to: email,
     subject: "CPass 2FA Setup",
-    text: `Thanks for registering on CPass.\n\n
-    Please click on the following link to verify your email address: ${verficationLink}\n\n
-    You can use the QR code attached or the following secret key for 2FA:\n
-    Secret Key: ${base32Secret}\n
+    text: `Thanks for registering on CPass.
+    Please click on the following link to verify your email address: ${verficationLink}
+    You can use the QR code attached or the following secret key for 2FA:
+    Secret Key: ${base32Secret}
     It is recommended that you use an app like Google Authenticator for two factor authentication
     `.replace(/\n\s+/g, "\n"),
     attachments: [
@@ -84,11 +84,41 @@ export const sendSignUpMail = async (email: string, base32Secret: string, qrCode
     mailOpts,
     callback: (error, info) => {
       if (error) {
-        Logger.error(`Error while sending 2FA email to ${email}`);
+        Logger.error(`Error while sending 2FA mail to ${email}`);
         Logger.error(`Error Message: ${error.message}\nError Stack: ${error.stack}`);
       }
       if (info)
-        Logger.success(`2FA Email sent successfully to ${email}`);
+        Logger.success(`2FA mail sent successfully to ${email}`);
+    }
+  });
+
+};
+
+
+export const sendLoginAttemptMail = async (email: string, ipAddress: string, successful: boolean) => {
+  const accessToken = await oauth2Client.getAccessToken();
+  const transport = createTransport(accessToken);
+
+  const mailOpts = {
+    from: process.env.MAIL_USER as string,
+    to: email,
+    subject: `CPass ${successful ? "Successful" : "Failed"} Login attempt`,
+    text: `Hi there,
+    A ${successful ? "successful" : "failed"} login attempt to your account has taken place.
+    IP Address of login attempt: ${ipAddress}
+    If you did not initiate this login attempt, please contact the CPass support.`.replace(/\n\s+/g, "\n")
+  };
+
+  mailQueue.push({
+    transport,
+    mailOpts,
+    callback: (error, info) => {
+      if (error) {
+        Logger.error(`Error while sending login attempt mail to ${email}`);
+        Logger.error(`Error Message: ${error.message}\nError Stack: ${error.stack}`);
+      }
+      if (info)
+        Logger.success(`Login attempt mail sent successfully to ${email}`);
     }
   });
 

@@ -5,7 +5,7 @@ import bcrypt from "bcrypt";
 import { sign as JwtSign } from "jsonwebtoken";
 
 import { getCollection } from "../db";
-import { sendSignUpMail } from "../utils/mailer";
+import { sendLoginAttemptMail, sendSignUpMail } from "../utils/mailer";
 import Logger from "../utils/logger";
 
 import { User } from "../types/types";
@@ -101,10 +101,15 @@ export const authenticateUser = async (req: Request, res: Response) => {
     const authCodeMatches = await bcrypt.compare(authKey, user.authKey);
     const totpCodeMatches = speakeasy.totp.verify({ secret: user.secret, encoding: "base32", token: totpCode });
 
-    const jwt = JwtSign({ username: user.username }, process.env.JWT_SECRET as string, { expiresIn: 15 * 60 * 1000 });
-    if (authCodeMatches && totpCodeMatches)
+    // TODO: Improve the getting ip method if possible
+    sendLoginAttemptMail(user.email, req.ip, authCodeMatches && totpCodeMatches);
+
+    if (authCodeMatches && totpCodeMatches) {
+      const jwt = JwtSign({ username: user.username }, process.env.JWT_SECRET as string, { expiresIn: 15 * 60 * 1000 });
       return res.status(200).json({ message: "You are authenticated", data: { jwt } });
-    else return res.status(401).json({ message: "You are not authenticated" }); // TODO: Send a login attempt email and in future lock account if too many attempts
+    }
+    // TODO: Lock account if too many attempts
+    else return res.status(401).json({ message: "You are not authenticated" });
   }
   catch (e) {
     Logger.error("Error while authenticating user");
