@@ -1,5 +1,7 @@
 import Logger from "./logger";
 import { getCollection } from "../db";
+import { User } from "../types/types";
+import { ObjectId } from "mongodb";
 
 const characters = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
 const charsLength = characters.length;
@@ -25,6 +27,21 @@ export const isEmailUsed = async (email: string): Promise<boolean> => {
   return !!user;
 };
 
+export const createDefUserObj = (username: string, email: string, authKey: string, secret: string): User => {
+  return {
+    _id: new ObjectId(),
+    username,
+    email,
+    authKey,
+    secret,
+    verfied: false,
+    settings: {
+      tokenExpDuration: 900,
+    },
+    actions: [],
+  };
+};
+
 
 export const genRandomString = (length: number) => {
   let result = "";
@@ -38,63 +55,33 @@ export const validateEnvironmentVariables = (): boolean => {
   // TODO: Refactor this code later creating another function that takes in a key aka environement variable and checks if it is defined
   let failedCount = 0;
 
-  // General Environment Variables
-  if (!process.env.SERVER_PORT) {
-    failedCount += 1;
-    Logger.error("Environment variable 'SERVER_PORT' not set");
-  }
-  if (!process.env.BASE_URL) {
-    failedCount += 1;
-    Logger.error("Environment variable 'BASE_URL' not set");
-  }
-  if (!process.env.DB_NAME) {
-    failedCount += 1;
-    Logger.error("Environment variable 'DB_NAME' not set");
-  }
-  if (!process.env.DB_URI) {
-    failedCount += 1;
-    Logger.error("Environment variable 'DB_URI' not set");
-  }
-  if (!process.env.MODE) {
-    failedCount += 1;
-    Logger.error("Environment variable 'MODE' not set");
-  }
+  const requiredEnvVars = [
+    "SERVER_PORT",
+    "BASE_URL",
+    "DB_NAME",
+    "DB_URI",
+    "MODE",
+    "MAIL_USER",
+    "CLIENT_ID",
+    "CLIENT_SECRET",
+    "CLIENT_REFRESH_TOKEN",
+    "CLIENT_REDIRECT_URI",
+    "LOG_FOLDER_PATH",
+    "LOG_FILE_MAX_SIZE",
+    "JWT_SECRET",
+  ];
 
-  // Mail Environment Variables
-  if (!process.env.MAIL_USER) {
-    failedCount += 1;
-    Logger.error("Environment variable 'MAIL_USER' not set");
-  }
-  if (!process.env.CLIENT_ID) {
-    failedCount += 1;
-    Logger.error("Environment variable 'CLIENT_ID' not set");
-  }
-  if (!process.env.CLIENT_SECRET) {
-    failedCount += 1;
-    Logger.error("Environment variable 'CLIENT_SECRET' not set");
-  }
-  if (!process.env.CLIENT_REFRESH_TOKEN) {
-    failedCount += 1;
-    Logger.error("Environment variable 'CLIENT_REFRESH_TOKEN' not set");
-  }
-  if (!process.env.CLIENT_REDIRECT_URL) {
-    failedCount += 1;
-    Logger.error("Environment variable 'CLIENT_REDIRECT_URL' not set");
-  }
+  const presenceCheck = (key: string) => {
+    if (!process.env[key]) {
+      failedCount += 1;
+      Logger.error(`Environment variable '${key}' is not defined`);
+    }
+  };
 
-  // Logging Environment Variables
-  if (!process.env.LOG_FOLDER_PATH) {
-    failedCount += 1;
-    Logger.error("Environment variable 'LOG_FOLDER_PATH' not set");
-  }
-  if (!process.env.LOG_FILE_MAX_SIZE) {
-    failedCount += 1;
-    Logger.error("Environment variable 'LOG_FILE_MAX_SIZE' not set");
-  }
+  // TODO: Later have optional environment variables and set their default values if missing. Also notify the user
+  requiredEnvVars.forEach(key => { presenceCheck(key); });
 
-  if (failedCount !== 0) {
-    Logger.error(`${failedCount} environment variable(s) are not set`);
-    return false;
-  }
-  return true;
+  if (failedCount !== 0) Logger.error(`${failedCount} errors found. `);
+
+  return failedCount === 0;
 };

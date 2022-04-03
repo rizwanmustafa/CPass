@@ -80,20 +80,20 @@ export const handleEmailVerificationAction = async (
   }
 };
 
-export const createEmailVerificationAction = async (username: string, email: string): Promise<string> => {
+export const createEmailVerificationAction = async (username: string, email: string, userObject?: User): Promise<string> => {
   try {
     const usersCollection = await getCollection("users");
 
-    const user: User = await usersCollection.findOne({ username }) as User;
-    if (!user) {
-      Logger.error("Create email verification action called on non-existent user");
-      return "";
+    if (!userObject) {
+      userObject = await usersCollection.findOne({ username }) as User;
+      if (!userObject) {
+        Logger.error("Create email verification action called on non-existent user");
+        return "";
+      }
     }
 
-    if (!user.actions) user.actions = [];
-
     let actionID = genRandomString(32);
-    while (user?.actions?.find(a => a.link === actionID)) {
+    while (userObject.actions.find(a => a.link === actionID)) {
       actionID = genRandomString(32);
     }
 

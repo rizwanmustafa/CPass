@@ -6,9 +6,9 @@ import Logger from "./logger";
 import { MailQueueItem } from "../types/types";
 import SMTPTransport from "nodemailer/lib/smtp-transport";
 
-const { CLIENT_ID, CLIENT_SECRET, CLIENT_REDIRECT_URL, CLIENT_REFRESH_TOKEN } = process.env;
+const { CLIENT_ID, CLIENT_SECRET, CLIENT_REDIRECT_URI, CLIENT_REFRESH_TOKEN } = process.env;
 
-const oauth2Client = new google.auth.OAuth2(CLIENT_ID, CLIENT_SECRET, CLIENT_REDIRECT_URL);
+const oauth2Client = new google.auth.OAuth2(CLIENT_ID, CLIENT_SECRET, CLIENT_REDIRECT_URI);
 oauth2Client.setCredentials({ refresh_token: CLIENT_REFRESH_TOKEN });
 
 const mailQueue: MailQueueItem[] = [];

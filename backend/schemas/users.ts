@@ -1,5 +1,7 @@
 import joi from "joi";
 
+const booleanSchema = joi.boolean().required();
+
 // User Object Schemaas
 
 export const usernameSchema = joi.string()
@@ -48,16 +50,15 @@ export const totpCodeSchema = joi.string()
     "string.length": "Invalid totp code. A totp code must be 6 digits long",
   });
 
-export const userActionLinkSchema = joi.string()
-  .label("Action link")
-  .length(32)
-  .required();
-
-const booleanSchema = joi.boolean().required();
 
 export const emailVerifiedSchema = booleanSchema.label("emailVerified");
 
 export const userSecretSchema = joi.string().label("User 2FA Secret").length(52).required();
+
+export const userSettingsSchema = joi.object().keys({
+  tokenExpDuration: joi.number().label("Token expiration duration").min(30).required()
+
+}).required();
 
 export const userSchema = joi.object().keys({
   username: usernameSchema,
@@ -65,10 +66,15 @@ export const userSchema = joi.object().keys({
   authKey: authKeySchema,
   emailVerified: emailVerifiedSchema,
   secret: userSecretSchema,
+  settings: userSettingsSchema,
 
 }).required();
 
 // User Action Schemas
+export const userActionLinkSchema = joi.string()
+  .label("Action link")
+  .length(32)
+  .required();
 
 export const userActionTypeSchema = joi.string().label("User Action Type").valid("emailVerification").required();
 
