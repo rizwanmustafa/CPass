@@ -18,7 +18,6 @@
     "date-fns": "2.28.0",
     "dotenv": "16.0.0",
     "express": "4.17.3",
-    "express-jwt": "6.1.1",
     "google-auth-library": "7.14.1",
     "googleapis": "99.0.0",
     "joi": "17.6.0",
@@ -30,6 +29,7 @@
     "qrcode": "1.5.0",
     "speakeasy": "2.0.0",
     "ts-node": "10.7.0",
+    "uuid": "8.3.2",
     "winston": "3.6.0"
   },
   "devDependencies": {
@@ -38,11 +38,11 @@
     "@types/bcrypt": "5.0.0",
     "@types/cors": "2.8.12",
     "@types/express": "4.17.13",
-    "@types/express-jwt": "6.0.4",
     "@types/gulp": "4.0.9",
     "@types/jsonwebtoken": "8.5.8",
     "@types/morgan": "1.9.3",
     "@types/nodemailer": "6.4.4",
+    "@types/uuid": "8.3.4",
     "@typescript-eslint/eslint-plugin": "latest",
     "@typescript-eslint/parser": "latest",
     "concurrently": "7.0.0",

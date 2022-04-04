@@ -6,11 +6,11 @@ import { sign as JwtSign } from "jsonwebtoken";
 
 import { getCollection } from "../db";
 import { sendLoginAttemptMail, sendSignUpMail } from "../utils/mailer";
+import { createEmailVerificationAction } from "./actions";
+import { isUsernameUsed, isEmailUsed, createDefUserObj, createDefUserCredObj } from "../utils/misc";
 import Logger from "../utils/logger";
 
 import { User } from "../types/types";
-import { createEmailVerificationAction } from "./actions";
-import { isUsernameUsed, isEmailUsed, createDefUserObj } from "../utils/misc";
 
 // Controller functions
 export const createUser = async (req: Request, res: Response) => {
@@ -24,14 +24,17 @@ export const createUser = async (req: Request, res: Response) => {
     if (await isEmailUsed(email)) return res.status(400).json({ message: "Email already in use" });
 
     const usersCollection = await getCollection("users");
+    const credsCollection = await getCollection("credentials");
 
     const userSecret = speakeasy.generateSecret({ name: `CPass ${email}` });
     const qrCode = await qrcode.toString(userSecret.otpauth_url as string, { type: "svg" });
 
-    const userObject = createDefUserObj(username, email, newAuthKey, userSecret.base32);
-    await usersCollection.insertOne(userObject);
+    const userObj = await createDefUserObj(username, email, newAuthKey, userSecret.base32);
+    await usersCollection.insertOne(userObj);
+    const userCredObj = createDefUserCredObj(userObj.uuid);
+    await credsCollection.insertOne(userCredObj);
 
-    const actionID = await createEmailVerificationAction(username, email, userObject);
+    const actionID = await createEmailVerificationAction(username, email, userObj);
     // TODO: Think about removing the user from the database if the action fails
     if (actionID === "") return res.status(500).json({ message: "Internal Server Error" });
 
@@ -105,7 +108,7 @@ export const authenticateUser = async (req: Request, res: Response) => {
     sendLoginAttemptMail(user.email, req.ip, authCodeMatches && totpCodeMatches);
 
     if (authCodeMatches && totpCodeMatches) {
-      const jwt = JwtSign({ username: user.username }, process.env.JWT_SECRET as string, { expiresIn: 15 * 60 * 1000 });
+      const jwt = JwtSign({ username: user.username, uuid: user.uuid }, process.env.JWT_SECRET as string, { expiresIn: 15 * 60 * 1000 });
       return res.status(200).json({ message: "You are authenticated", data: { jwt } });
     }
     // TODO: Lock account if too many attempts

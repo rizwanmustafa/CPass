@@ -1,10 +1,11 @@
 import express from "express";
-import jwt from "express-jwt";
 import { usernameSchema, emailSchema, authKeySchema, totpCodeSchema, userActionLinkSchema } from "../schemas/users";
 import { createUser, deleteUser, authenticateUser, usernameAvailable } from "../controllers/users";
 import { handleActions } from "../controllers/actions";
+import jwtMiddleware from "../middlewares/jwt";
 
 import validateSchema from "../schemas/validateSchema";
+import { addCredential, getCredentials } from "../controllers/credentials";
 
 export const router = express.Router();
 
@@ -65,11 +66,21 @@ router.get(
   handleActions
 );
 
+router.get(
+  "/credentials",
+  jwtMiddleware,
+  getCredentials
+);
+
 router.post(
-  "/protected",
-  jwt({ secret: (process.env.JWT_SECRET as string), algorithms: ["HS256"] }),
-  (req, res) => {
-    console.log(req.user);
-    return res.status(req.user ? 200 : 401).json({ user: req.user });
-  }
+  "/credentials",
+  (req, res, next) => {
+    const credential = req.body.credential;
+
+    if (!credential) return res.status(400).json({ message: "Credential cannot be undefined or null" });
+
+    next();
+  },
+  jwtMiddleware,
+  addCredential
 );

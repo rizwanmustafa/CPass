@@ -1,7 +1,8 @@
 import Logger from "./logger";
 import { getCollection } from "../db";
-import { User } from "../types/types";
+import { User, UserCredentialObject } from "../types/types";
 import { ObjectId } from "mongodb";
+import { v4 as uuidV4 } from "uuid";
 
 const characters = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
 const charsLength = characters.length;
@@ -27,9 +28,10 @@ export const isEmailUsed = async (email: string): Promise<boolean> => {
   return !!user;
 };
 
-export const createDefUserObj = (username: string, email: string, authKey: string, secret: string): User => {
+export const createDefUserObj = async (username: string, email: string, authKey: string, secret: string): Promise<User> => {
   return {
     _id: new ObjectId(),
+    uuid: (await createUserUuid()),
     username,
     email,
     authKey,
@@ -39,6 +41,31 @@ export const createDefUserObj = (username: string, email: string, authKey: strin
       tokenExpDuration: 900,
     },
     actions: [],
+  };
+};
+
+export const createUserUuid = async (): Promise<string> => {
+  try {
+    const usersCollection = await getCollection("users");
+
+    let uuid = uuidV4();
+    while (await usersCollection.findOne({ uuid }))
+      uuid = uuidV4();
+
+    return uuid;
+  }
+  catch (e) {
+    Logger.error("Could not create user uuid");
+    Logger.error(e);
+    return "";
+  }
+};
+
+export const createDefUserCredObj = (uuid: string): UserCredentialObject => {
+  return {
+    _id: new ObjectId(),
+    uuid: uuid,
+    credentials: []
   };
 };
 
