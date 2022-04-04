@@ -1,4 +1,5 @@
 import express from "express";
+import jwt from "express-jwt";
 import { usernameSchema, emailSchema, authKeySchema, totpCodeSchema, userActionLinkSchema } from "../schemas/users";
 import { createUser, deleteUser, authenticateUser, usernameAvailable } from "../controllers/users";
 import { handleActions } from "../controllers/actions";
@@ -62,4 +63,13 @@ router.get(
     next();
   },
   handleActions
+);
+
+router.post(
+  "/protected",
+  jwt({ secret: (process.env.JWT_SECRET as string), algorithms: ["HS256"] }),
+  (req, res) => {
+    console.log(req.user);
+    return res.status(req.user ? 200 : 401).json({ user: req.user });
+  }
 );
