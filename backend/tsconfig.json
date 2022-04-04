@@ -19,6 +19,6 @@
     "schemas/*.ts",
     "utils/*.ts"
   ],
-  "files": ["index.ts", "db.ts", "app.ts", "types/*.ts"],
+  "files": ["index.ts", "db.ts", "app.ts", "types/types.d.ts"],
   "exclude": ["node_modules/*", "build"]
 }
