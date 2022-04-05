@@ -5,7 +5,7 @@ import { handleActions } from "../controllers/actions";
 import jwtMiddleware from "../middlewares/jwt";
 
 import validateSchema from "../schemas/validateSchema";
-import { addCredential, getCredentials } from "../controllers/credentials";
+import { addVaultItem, getVaultItems, deleteVaultItem, updateVaultItem } from "../controllers/vault";
 
 export const router = express.Router();
 
@@ -67,20 +67,45 @@ router.get(
 );
 
 router.get(
-  "/credentials",
+  "/vault",
   jwtMiddleware,
-  getCredentials
+  getVaultItems
 );
 
 router.post(
-  "/credentials",
+  "/vault",
   (req, res, next) => {
-    const credential = req.body.credential;
-
-    if (!credential) return res.status(400).json({ message: "Credential cannot be undefined or null" });
+    const item = req.body.item;
+    if (!item) return res.status(400).json({ message: "'item' cannot be undefined or null" });
 
     next();
   },
   jwtMiddleware,
-  addCredential
+  addVaultItem
+);
+
+router.patch(
+  "/vault",
+  (req, res, next) => {
+    const itemId = req.body.itemId;
+    if (!itemId) return res.status(400).json({ message: "'itemId' cannot be undefined or null" });
+
+    const item = req.body.item;
+    if (!item) return res.status(400).json({ message: "'item' cannot be undefined or null" });
+
+    next();
+  },
+  jwtMiddleware,
+  updateVaultItem
+);
+
+router.delete("/vault",
+  (req, res, next) => {
+    const itemId = req.body.itemId;
+    if (!itemId) return res.status(400).json({ message: "'itemId' cannot be undefined or null" });
+
+    next();
+  },
+  jwtMiddleware,
+  deleteVaultItem
 );

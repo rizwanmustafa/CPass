@@ -1,6 +1,6 @@
 import Logger from "./logger";
 import { getCollection } from "../db";
-import { User, UserCredentialObject } from "../types/types";
+import { User, UserVaultObject } from "../types/types";
 import { ObjectId } from "mongodb";
 import { v4 as uuidV4 } from "uuid";
 
@@ -29,9 +29,10 @@ export const isEmailUsed = async (email: string): Promise<boolean> => {
 };
 
 export const createDefUserObj = async (username: string, email: string, authKey: string, secret: string): Promise<User> => {
+  const uuid = await createUserUuid();
   return {
     _id: new ObjectId(),
-    uuid: (await createUserUuid()),
+    uuid,
     username,
     email,
     authKey,
@@ -61,11 +62,11 @@ export const createUserUuid = async (): Promise<string> => {
   }
 };
 
-export const createDefUserCredObj = (uuid: string): UserCredentialObject => {
+export const createDefUserVaultObj = (uuid: string): UserVaultObject => {
   return {
     _id: new ObjectId(),
     uuid: uuid,
-    credentials: []
+    vaultItems: []
   };
 };
 

@@ -7,7 +7,7 @@ import { sign as JwtSign } from "jsonwebtoken";
 import { getCollection } from "../db";
 import { sendLoginAttemptMail, sendSignUpMail } from "../utils/mailer";
 import { createEmailVerificationAction } from "./actions";
-import { isUsernameUsed, isEmailUsed, createDefUserObj, createDefUserCredObj } from "../utils/misc";
+import { isUsernameUsed, isEmailUsed, createDefUserObj, createDefUserVaultObj } from "../utils/misc";
 import Logger from "../utils/logger";
 
 import { User } from "../types/types";
@@ -24,15 +24,15 @@ export const createUser = async (req: Request, res: Response) => {
     if (await isEmailUsed(email)) return res.status(400).json({ message: "Email already in use" });
 
     const usersCollection = await getCollection("users");
-    const credsCollection = await getCollection("credentials");
+    const vaultCollection = await getCollection("vault");
 
     const userSecret = speakeasy.generateSecret({ name: `CPass ${email}` });
     const qrCode = await qrcode.toString(userSecret.otpauth_url as string, { type: "svg" });
 
     const userObj = await createDefUserObj(username, email, newAuthKey, userSecret.base32);
     await usersCollection.insertOne(userObj);
-    const userCredObj = createDefUserCredObj(userObj.uuid);
-    await credsCollection.insertOne(userCredObj);
+    const userVaultObj = createDefUserVaultObj(userObj.uuid);
+    await vaultCollection.insertOne(userVaultObj);
 
     const actionID = await createEmailVerificationAction(username, email, userObj);
     // TODO: Think about removing the user from the database if the action fails
@@ -58,12 +58,15 @@ export const deleteUser = async (req: Request, res: Response) => {
     const username: string = req.body.username;
 
     const usersCollection = await getCollection("users");
+    const vaultCollection = await getCollection("vault");
 
     const user: User = await usersCollection.findOne({ username }) as User;
 
     if (!user) return res.status(404).json({ message: "User not found" });
 
-    usersCollection.deleteOne({ _id: user._id });
+    usersCollection.deleteOne({ uuid: user.uuid });
+    vaultCollection.deleteOne({ uuid: user.uuid });
+
 
     return res.status(200).json({ message: "User deleted" });
   }

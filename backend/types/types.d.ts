@@ -15,10 +15,10 @@ export interface User {
 
 export interface UserAction { type: string; link: string; used: boolean; email?: string }
 
-export interface UserCredentialObject {
+export interface UserVaultObject {
   _id: ObjectId;
   uuid: string;
-  credentials: object[];
+  vaultItems: object[];
 }
 
 export interface UserJwt {
