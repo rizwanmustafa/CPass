@@ -108,7 +108,8 @@ export const authenticateUser = async (req: Request, res: Response) => {
     sendLoginAttemptMail(user.email, req.ip, authCodeMatches && totpCodeMatches);
 
     if (authCodeMatches && totpCodeMatches) {
-      const jwt = JwtSign({ username: user.username, uuid: user.uuid }, process.env.JWT_SECRET as string, { expiresIn: 15 * 60 * 1000 });
+      // Expire the token after 5 minutes
+      const jwt = JwtSign({ username: user.username, uuid: user.uuid }, process.env.JWT_SECRET as string, { expiresIn: 5 * 60 * 1000 });
       return res.status(200).json({ message: "You are authenticated", data: { jwt } });
     }
     // TODO: Lock account if too many attempts
