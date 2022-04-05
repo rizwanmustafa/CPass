@@ -17,7 +17,8 @@
     "controllers/*.ts",
     "routes/*.ts",
     "schemas/*.ts",
-    "utils/*.ts"
+    "utils/*.ts",
+    "middlewares/*.ts"
   ],
   "files": ["index.ts", "db.ts", "app.ts", "types/types.d.ts"],
   "exclude": ["node_modules/*", "build"]
