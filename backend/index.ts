@@ -55,5 +55,6 @@ process.on("SIGINT", cleanUpServer);
 process.on("SIGTERM", cleanUpServer);
 process.on("SIGUSER1", cleanUpServer);
 process.on("SIGUSER2", cleanUpServer);
+process.on("uncaughtException", e => console.error);
 
 bootServer(app);
