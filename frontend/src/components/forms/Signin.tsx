@@ -58,7 +58,7 @@ const SigninForm = (props: Props): JSX.Element => {
 
         try {
             // Change this later
-            const request = await axios.post("http://localhost:5000/auth/generate/", {
+            const request = await axios.post(`${process.env.REACT_APP_API_URL}/users/signin`, {
                 username: userData.username,
                 password: userData.password,
             })

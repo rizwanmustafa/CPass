@@ -66,7 +66,7 @@ const SignupForm = (): JSX.Element => {
 
         try {
             console.log(userData);
-            const fetchData = await axios.post(`${process.env.REACT_APP_API_URL}/users/`, userData);
+            const fetchData = await axios.post(`${process.env.REACT_APP_API_URL}/users/signup`, userData);
 
             const serverMessage = await fetchData.data;
             console.log(fetchData.status);
@@ -100,10 +100,10 @@ const SignupForm = (): JSX.Element => {
     const checkUsernameAvail = async (username: string): Promise<boolean> => {
         // This method sends a request to an API by server to check if the current username is available
         try {
-            const request = await axios.get(`${process.env.REACT_APP_API_URL}/users/usernameavailable?username=${username}`);
+            const request = await axios.get(`${process.env.REACT_APP_API_URL}/users/usernameAvailable?username=${username}`);
 
-            if (request.data && request.data.available !== undefined)
-                return request.data.available;
+            if (request.data && request.data.usernameAvailable !== undefined)
+                return request.data.usernameAvailable;
 
             else return false;
         }
