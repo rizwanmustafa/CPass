@@ -18,8 +18,51 @@ import { isAlphaNumeric, hasAlphaNumeric, isValidEmail } from "../../scripts/Dat
 
 import Popup from "../Popup";
 
+const textboxStyles: React.CSSProperties = { paddingBottom: 15 }
+
+const getAuthKey = async (email: string, password: string): Promise<string> => {
+  try {
+    const input = Buffer.from((password + email).normalize("NFKC"));
+    const salt = Buffer.from("salt");
+    const tempKey = await scrypt(input, salt, 65536, 8, 1, 64);
+    return Buffer.from(tempKey).toString("base64");
+  }
+  catch (e) {
+    console.error("Could not generate auth key");
+    console.error(e);
+    return "";
+  }
+}
+
+interface IFormTextBoxProps {
+  handleInput: (e: React.ChangeEvent<HTMLInputElement>) => void;
+  toggleEmptyValWarning: (e: React.FocusEvent) => void;
+  label: string;
+  error: string;
+  value: string;
+  type: string;
+}
+
+const FormTextBox = (props: IFormTextBoxProps): JSX.Element => {
+  return (
+    <TextField
+      variant="outlined"
+      required
+      label={props.label}
+      type={props.type}
+      id={props.label.toLowerCase()}
+      onChange={props.handleInput}
+      onBlur={props.toggleEmptyValWarning}
+      error={props.error !== ""}
+      helperText={props.error}
+      value={props.value}
+      style={textboxStyles}
+    />
+  );
+}
+
+
 const SignupForm = (): JSX.Element => {
-  const textboxStyles: React.CSSProperties = { paddingBottom: 15 }
   const history = useHistory();
   const formClasses = FormStyles();
 
@@ -33,7 +76,7 @@ const SignupForm = (): JSX.Element => {
   const [emptyEmailWarning, setEmptyEmailWarning] = useState<boolean>(false);
   const [emptyPasswordWarning, setEmptyPasswordWarning] = useState<boolean>(false)
 
-  const ToggleEmptyValueWarning = (e: React.FocusEvent | React.ChangeEvent) => {
+  const toggleEmptyValWarning = (e: React.FocusEvent) => {
     // If all warnings are toggled, do not do anything
     if (emptyUsernameWarning && emptyPasswordWarning && emptyEmailWarning) return;
 
@@ -49,21 +92,7 @@ const SignupForm = (): JSX.Element => {
   const [requestInProcess, setRequestInProcess] = useState<boolean>(false);
 
 
-  const getAuthKey = async (email: string, password: string): Promise<string> => {
-    try {
-      const input = Buffer.from((password + email).normalize("NFKC"));
-      const salt = Buffer.from("salt");
-      const tempKey = await scrypt(input, salt, 65536, 8, 1, 64);
-      return Buffer.from(tempKey).toString("base64");
-    }
-    catch (e) {
-      console.error("Could not generate auth key");
-      console.error(e);
-      return "";
-    }
-  }
-
-  const registerUser = async () => {
+  const registerUser = async (): Promise<void> => {
     // This method registers the user on the server and sets the server response for display
     setRequestInProcess(true);
 
@@ -96,19 +125,20 @@ const SignupForm = (): JSX.Element => {
       setServerResponse(serverMessage);
     }
     catch (e) {
-      if(e.response){
+      if (e.response) {
         setServerResponseStatus(e.response.status);
         setServerResponse({ message: e.response.data.message });
       }
       else console.error(e);
     }
-    setRequestInProcess(false);
+    finally {
+      setRequestInProcess(false);
+    }
   }
 
-  const HandleInput = (e: React.ChangeEvent<HTMLInputElement>) => {
-    // This method deals with changes in the value of Input Elements for forms
 
-    ToggleEmptyValueWarning(e)
+  const handleInput = (e: React.ChangeEvent<HTMLInputElement>) => {
+    // This method deals with changes in the value of Input Elements for forms
 
     const newUserData = {
       ...userData,
@@ -206,45 +236,31 @@ const SignupForm = (): JSX.Element => {
     >
       <Typography variant="h4" component="h1" className={formClasses.heading} color="textPrimary">Sign up</Typography>
 
-      <TextField
-        variant="outlined"
-        required label="Username"
+      <FormTextBox
+        handleInput={handleInput}
+        toggleEmptyValWarning={toggleEmptyValWarning}
+        label="Username"
         type="text"
-        id="username"
-        onChange={HandleInput}
-        onBlur={ToggleEmptyValueWarning}
-        error={usernameError !== ""}
-        helperText={usernameError}
         value={userData.username}
-        style={textboxStyles}
+        error={usernameError}
       />
 
-      <TextField
-        variant="outlined"
-        required
+      <FormTextBox
+        handleInput={handleInput}
+        toggleEmptyValWarning={toggleEmptyValWarning}
         label="Email"
-        type="email"
-        id="email"
-        onChange={HandleInput}
-        onBlur={ToggleEmptyValueWarning}
-        error={emailError !== ""}
-        helperText={emailError}
+        type="text"
         value={userData.email}
-        style={textboxStyles}
+        error={emailError}
       />
 
-      <TextField
-        variant="outlined"
-        required
+      <FormTextBox
+        handleInput={handleInput}
+        toggleEmptyValWarning={toggleEmptyValWarning}
         label="Password"
         type="password"
-        id="password"
-        onChange={HandleInput}
-        onBlur={ToggleEmptyValueWarning}
-        error={passwordError !== ""}
-        helperText={passwordError}
         value={userData.password}
-        style={textboxStyles}
+        error={passwordError}
       />
 
       <Button
@@ -278,7 +294,6 @@ const SignupForm = (): JSX.Element => {
         [formClasses.pointerChange]: true,
       })
       }>Already have an account? Click here to sign in</Typography>
-
 
     </form>
   );
