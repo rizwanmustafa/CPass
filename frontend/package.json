@@ -25,6 +25,10 @@
     "@types/react-dom": "17.0.14",
     "@types/react-router": "5.1.18",
     "@types/react-router-dom": "5.3.3",
+    "@typescript-eslint/eslint-plugin": "5.18.0",
+    "@typescript-eslint/parser": "5.18.0",
+    "eslint": "8.12.0",
+    "eslint-plugin-react": "7.29.4",
     "serve": "13.0.2"
   },
   "scripts": {
@@ -32,7 +36,9 @@
     "start": "yarn build && cd build && yarn serve -s ./ -p 5000",
     "build": "react-scripts build",
     "test": "react-scripts test",
-    "eject": "react-scripts eject"
+    "eject": "react-scripts eject",
+    "lint": "eslint \"src/**/*.{ts,tsx}\"",
+    "lint:fix": "eslint \"src/**/*.{ts,tsx}\" --fix"
   },
   "eslintConfig": {
     "extends": [

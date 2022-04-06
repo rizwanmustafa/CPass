@@ -8,6 +8,7 @@
     "watch": "yarn run gulp watch",
     "build": "yarn run gulp build",
     "lint": "yarn run eslint \"./**/*.{ts,js}\"",
+    "lint:fix": "yarn run eslint \"./**/*.{ts,js}\" --fix",
     "start": "node ./build/index.js",
     "dev": "concurrently --kill-others \"yarn run build && yarn run watch\" \"nodemon ./build/index.js\""
   },

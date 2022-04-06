@@ -18,7 +18,7 @@ import { isAlphaNumeric, hasAlphaNumeric, isValidEmail } from "../../scripts/Dat
 
 import Popup from "../Popup";
 
-const textboxStyles: React.CSSProperties = { paddingBottom: 15 }
+const textboxStyles: React.CSSProperties = { paddingBottom: 15 };
 
 const getAuthKey = async (email: string, password: string): Promise<string> => {
   try {
@@ -32,7 +32,7 @@ const getAuthKey = async (email: string, password: string): Promise<string> => {
     console.error(e);
     return "";
   }
-}
+};
 
 interface IFormTextBoxProps {
   handleInput: (e: React.ChangeEvent<HTMLInputElement>) => void;
@@ -59,7 +59,7 @@ const FormTextBox = (props: IFormTextBoxProps): JSX.Element => {
       style={textboxStyles}
     />
   );
-}
+};
 
 
 const SignupForm = (): JSX.Element => {
@@ -74,7 +74,7 @@ const SignupForm = (): JSX.Element => {
 
   const [emptyUsernameWarning, setEmptyUsernameWarning] = useState<boolean>(false);
   const [emptyEmailWarning, setEmptyEmailWarning] = useState<boolean>(false);
-  const [emptyPasswordWarning, setEmptyPasswordWarning] = useState<boolean>(false)
+  const [emptyPasswordWarning, setEmptyPasswordWarning] = useState<boolean>(false);
 
   const toggleEmptyValWarning = (e: React.FocusEvent) => {
     // If all warnings are toggled, do not do anything
@@ -85,7 +85,7 @@ const SignupForm = (): JSX.Element => {
     if (!emptyUsernameWarning && elementID === "username") setEmptyUsernameWarning(true);
     if (!emptyEmailWarning && elementID === "email") setEmptyEmailWarning(true);
     if (!emptyPasswordWarning && elementID === "password") setEmptyPasswordWarning(true);
-  }
+  };
 
   const [serverResponse, setServerResponse] = useState<IServerResponse>({ message: "" }); // This stores the latest server response
   const [serverResponseStatus, setServerResponseStatus] = useState<number>(-1);
@@ -134,7 +134,7 @@ const SignupForm = (): JSX.Element => {
     finally {
       setRequestInProcess(false);
     }
-  }
+  };
 
 
   const handleInput = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -143,10 +143,10 @@ const SignupForm = (): JSX.Element => {
     const newUserData = {
       ...userData,
       [e.target.id]: e.target.value
-    }
+    };
 
-    setUserData(newUserData)
-  }
+    setUserData(newUserData);
+  };
 
 
   const [usernameAvailable, setUsernameAvailable] = useState<boolean>(true);
@@ -165,13 +165,13 @@ const SignupForm = (): JSX.Element => {
 
       return true;
     }
-  }
+  };
 
   useEffect(() => {
     // Everytime the username changes update its availability status
     if (userData.username !== null && userData.username.trim() !== "")
       checkUsernameAvail(userData.username).then(usernameAvail => setUsernameAvailable(usernameAvail));
-  }, [userData.username])
+  }, [userData.username]);
 
   // Everytime username changes, make sure it is valid and available
   const [usernameError, setUsernameError] = useState<string>("");
@@ -188,45 +188,45 @@ const SignupForm = (): JSX.Element => {
 
     else setUsernameError("");
 
-  }, [userData.username, usernameAvailable, emptyUsernameWarning])
+  }, [userData.username, usernameAvailable, emptyUsernameWarning]);
 
   // Everytime email changes, make sure it is valid
   const [emailError, setEmailError] = useState<string>("");
   useEffect(() => {
-    if (userData.email === null) return
+    if (userData.email === null) return;
 
-    else if (emptyEmailWarning && userData.email.trim() === "") setEmailError("Email cannot be empty or whitespace!")
+    else if (emptyEmailWarning && userData.email.trim() === "") setEmailError("Email cannot be empty or whitespace!");
 
     else if (emptyEmailWarning) {
 
-      if (!isValidEmail(userData.email)) setEmailError("Invalid email entered!")
+      if (!isValidEmail(userData.email)) setEmailError("Invalid email entered!");
 
-      else setEmailError("")
+      else setEmailError("");
     }
 
-  }, [userData.email, emptyEmailWarning])
+  }, [userData.email, emptyEmailWarning]);
 
   // Everytime password changes, make sure it is valid
   const [passwordError, setPasswordError] = useState<string>("");
   useEffect(() => {
-    if (userData.password === null) return
+    if (userData.password === null) return;
 
-    else if (emptyPasswordWarning && userData.password.trim() === "") setPasswordError("Password cannot be empty or whitespace!")
+    else if (emptyPasswordWarning && userData.password.trim() === "") setPasswordError("Password cannot be empty or whitespace!");
 
     else if (emptyPasswordWarning) {
 
-      if (userData.password.length < 8) setPasswordError("Password must be at least 8 characters long!")
+      if (userData.password.length < 8) setPasswordError("Password must be at least 8 characters long!");
 
-      else if (userData.password.length > 50) setPasswordError("Password must not be longer than 50 characters!")
+      else if (userData.password.length > 50) setPasswordError("Password must not be longer than 50 characters!");
 
-      else if (!hasAlphaNumeric(userData.password)) setPasswordError("Password must contain alphanumeric characters!")
+      else if (!hasAlphaNumeric(userData.password)) setPasswordError("Password must contain alphanumeric characters!");
 
-      else setPasswordError("")
+      else setPasswordError("");
     }
 
-  }, [userData.password, emptyPasswordWarning])
+  }, [userData.password, emptyPasswordWarning]);
 
-  const RedirectToSignInPage = () => history.push("/signin")
+  const RedirectToSignInPage = () => history.push("/signin");
 
 
   return (
@@ -297,6 +297,6 @@ const SignupForm = (): JSX.Element => {
 
     </form>
   );
-}
+};
 
 export default SignupForm;

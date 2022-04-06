@@ -15,95 +15,95 @@ import CircularProgress from "@material-ui/core/CircularProgress";
 import Popup from "../Popup";
 
 interface Props {
-    username: string;
-    setToken: React.Dispatch<React.SetStateAction<string>>;
+  username: string;
+  setToken: React.Dispatch<React.SetStateAction<string>>;
 }
 
 const VerifyLogin = (props: Props): JSX.Element => {
-    const formClasses = FormStyles();
+  const formClasses = FormStyles();
 
-    const [token, setToken] = useState<string>("");
-    const [requestInProcess, setRequestInProcess] = useState<boolean>(false);
-    const [serverResponse, setServerResponse] = useState<IServerResponse>({ message: "" });
-    const [serverResponseStatus, setServerResponseStatus] = useState<number>(-1);
+  const [token, setToken] = useState<string>("");
+  const [requestInProcess, setRequestInProcess] = useState<boolean>(false);
+  const [serverResponse, setServerResponse] = useState<IServerResponse>({ message: "" });
+  const [serverResponseStatus, setServerResponseStatus] = useState<number>(-1);
 
-    const VerifyToken = async () => {
-        setRequestInProcess(true);
+  const VerifyToken = async () => {
+    setRequestInProcess(true);
 
-        try {
-            const request = await axios.post("http://localhost:5000/auth/verify/", {
-                token: token
-            })
+    try {
+      const request = await axios.post("http://localhost:5000/auth/verify/", {
+        token: token
+      });
 
-            const response = await request.data as IServerResponse;
+      const response = await request.data as IServerResponse;
 
-            if (request.status === 200)
-                props.setToken(token)
-            else {
-                setServerResponseStatus(request.status);
-                setServerResponse(response)
-            }
-        }
-        catch (e) {
-            console.error("Could not verify token!", e)
-            setServerResponse({ message: "Could not connect to server!", })
-        }
-
-        setRequestInProcess(false);
-
+      if (request.status === 200)
+        props.setToken(token);
+      else {
+        setServerResponseStatus(request.status);
+        setServerResponse(response);
+      }
+    }
+    catch (e) {
+      console.error("Could not verify token!", e);
+      setServerResponse({ message: "Could not connect to server!", });
     }
 
-    return (
-        <form className={formClasses.form}>
-            <Typography variant="h4" component="h1" className={formClasses.heading} color="textPrimary">Making sure it's You</Typography>
+    setRequestInProcess(false);
 
-            <Typography component="p" className={formClasses.helperText} color="textPrimary">
-                Please enter the verification token mailed to you.
-            </Typography>
+  };
 
-            <br />
+  return (
+    <form className={formClasses.form}>
+      <Typography variant="h4" component="h1" className={formClasses.heading} color="textPrimary">Making sure it&apos;s You</Typography>
 
-            <TextField
-                variant="outlined"
-                required
-                label="Token"
-                type="text"
-                id="token"
-                onChange={e => setToken(e.target.value)}
-                value={token}
-                autoComplete="off"
-            />
+      <Typography component="p" className={formClasses.helperText} color="textPrimary">
+        Please enter the verification token mailed to you.
+      </Typography>
+
+      <br />
+
+      <TextField
+        variant="outlined"
+        required
+        label="Token"
+        type="text"
+        id="token"
+        onChange={e => setToken(e.target.value)}
+        value={token}
+        autoComplete="off"
+      />
 
 
-            <br />
-            <Button
-                variant="contained"
-                color="primary"
-                onClick={VerifyToken}
-                className={formClasses.button}
-                disabled={requestInProcess}
-            >
-                Verify
-                {requestInProcess &&
-                    <CircularProgress
-                        size={24}
-                        className={formClasses.progressBar}
-                    />
-                }
-            </Button>
+      <br />
+      <Button
+        variant="contained"
+        color="primary"
+        onClick={VerifyToken}
+        className={formClasses.button}
+        disabled={requestInProcess}
+      >
+        Verify
+        {requestInProcess &&
+          <CircularProgress
+            size={24}
+            className={formClasses.progressBar}
+          />
+        }
+      </Button>
 
-            {
-                (serverResponse.message ?? "") === "" ||
-                <Popup
-                    borderRadius={10}
-                    serverResponse={serverResponse}
-                    serverResponseStatus={serverResponseStatus}
-                    setServerResponse={setServerResponse}
-                />
-            }
+      {
+        (serverResponse.message ?? "") === "" ||
+        <Popup
+          borderRadius={10}
+          serverResponse={serverResponse}
+          serverResponseStatus={serverResponseStatus}
+          setServerResponse={setServerResponse}
+        />
+      }
 
-        </form>
-    );
-}
+    </form>
+  );
+};
 
 export default VerifyLogin;
